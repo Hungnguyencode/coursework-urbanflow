@@ -128,6 +128,12 @@ st.markdown(
     """
 )
 
+st.caption(
+    "Dataset: Citi Bike trip history + Open-Meteo historical weather | "
+    "Period: August 2026 | "
+    "Processed rides: 5.24M"
+)
+
 kpis = load_kpis().iloc[0]
 
 total_rides = int(
@@ -171,6 +177,44 @@ with col4:
     st.metric(
         "Electric Bike Share",
         f"{electric_share:.1f}%",
+    )
+
+
+st.markdown("### Key Findings")
+
+finding1, finding2, finding3 = st.columns(3)
+
+with finding1:
+    st.info(
+        """
+        **Commuter-oriented demand**
+
+        Weekday ridership shows strong morning and
+        evening peaks, especially around 08:00 and
+        17:00–18:00.
+        """
+    )
+
+with finding2:
+    st.info(
+        """
+        **Weekend behavior differs**
+
+        Weekend demand shifts toward midday and
+        afternoon rather than showing the same
+        commuter peak structure.
+        """
+    )
+
+with finding3:
+    st.info(
+        """
+        **Rain is associated with lower demand**
+
+        After adjusting for weekday and hour,
+        wetter conditions are associated with
+        below-expected ride demand.
+        """
     )
 
 
@@ -243,3 +287,14 @@ with right:
         station_fig,
         width="stretch",
     )
+
+
+st.divider()
+
+st.caption(
+    """
+    UrbanFlow transforms raw mobility and weather data
+    through a reproducible Python → Polars → Parquet →
+    DuckDB analytics pipeline before visualization.
+    """
+)
