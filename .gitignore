@@ -1,0 +1,26 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Environment
+.env
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Local data
+data/raw/*
+data/processed/*
+data/analytics/*
+
+# DuckDB
+*.duckdb
+*.duckdb.wal
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
