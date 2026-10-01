@@ -5,7 +5,6 @@ from urbanflow.ingestion.citibike import (
     extract_zip,
 )
 
-
 RAW_DIR = Path(
     "data/raw/citibike"
 )

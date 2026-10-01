@@ -4,7 +4,6 @@ import polars as pl
 
 from urbanflow.processing.clean_trips import clean_trips
 
-
 SOURCE = "data/raw/citibike/2026-08/*.csv"
 
 OUTPUT_DIR = Path(

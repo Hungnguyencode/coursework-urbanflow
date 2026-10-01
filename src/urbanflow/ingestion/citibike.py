@@ -1,11 +1,10 @@
-from pathlib import Path
-from urllib.parse import quote
 import re
 import xml.etree.ElementTree as ET
 import zipfile
+from pathlib import Path
+from urllib.parse import quote
 
 import httpx
-
 
 BUCKET_URL = "https://s3.amazonaws.com/tripdata"
 
@@ -135,7 +134,7 @@ def discover_archive(
             exact_candidates.append(key)
 
     if exact_candidates:
-        selected_key = sorted(exact_candidates)[0]
+        selected_key = min(exact_candidates)
 
         print(
             f"Found exact archive: {selected_key}"

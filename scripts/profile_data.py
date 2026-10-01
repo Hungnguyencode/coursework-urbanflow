@@ -1,6 +1,5 @@
 import polars as pl
 
-
 SOURCE = "data/raw/citibike/2026-08/*.csv"
 
 

@@ -2,7 +2,6 @@ import duckdb
 import plotly.express as px
 import streamlit as st
 
-
 DATABASE_PATH = (
     "data/analytics/urbanflow.duckdb"
 )

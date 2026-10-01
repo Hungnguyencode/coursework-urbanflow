@@ -2,7 +2,6 @@ from pathlib import Path
 
 import duckdb
 
-
 DATABASE_PATH = Path(
     "data/analytics/urbanflow.duckdb"
 )

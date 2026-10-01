@@ -3,7 +3,6 @@ from pathlib import Path
 import httpx
 import polars as pl
 
-
 ARCHIVE_URL = (
     "https://archive-api.open-meteo.com/v1/archive"
 )
@@ -26,13 +25,11 @@ def download_weather(
         "longitude": -74.0060,
         "start_date": start_date,
         "end_date": end_date,
-        "hourly": ",".join(
-            [
-                "temperature_2m",
-                "relative_humidity_2m",
-                "precipitation",
-                "wind_speed_10m",
-            ]
+        "hourly": (
+            "temperature_2m,"
+            "relative_humidity_2m,"
+            "precipitation,"
+            "wind_speed_10m"
         ),
         "timezone": "America/New_York",
     }

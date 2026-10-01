@@ -3,7 +3,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-
 DATABASE_PATH = "data/analytics/urbanflow.duckdb"
 
 
@@ -202,9 +201,9 @@ heatmap_fig = go.Figure(
         x=hours,
         y=weekday_order,
         colorscale="Blues",
-        colorbar=dict(
-            title="Avg rides",
-        ),
+        colorbar={
+            "title": "Avg rides",
+        },
         hovertemplate=(
             "<b>%{y}</b><br>"
             "Hour: %{x}:00<br>"

@@ -3,7 +3,6 @@ import plotly.express as px
 import pydeck as pdk
 import streamlit as st
 
-
 DATABASE_PATH = "data/analytics/urbanflow.duckdb"
 
 

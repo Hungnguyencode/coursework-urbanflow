@@ -3,7 +3,6 @@ from pathlib import Path
 import duckdb
 import polars as pl
 
-
 TRIPS_PARQUET = Path(
     "data/processed/trips/trips_2026_08.parquet"
 )

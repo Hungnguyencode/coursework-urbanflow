@@ -4,9 +4,7 @@ from pathlib import Path
 import duckdb
 import plotly.express as px
 import streamlit as st
-
 from components.filters import render_trip_filters
-
 
 DATABASE_PATH = Path("data/analytics/urbanflow.duckdb")
 ANALYSIS_START = date(2026, 8, 1)

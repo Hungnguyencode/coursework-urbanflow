@@ -2,7 +2,6 @@ from urbanflow.analytics.database import (
     get_connection,
 )
 
-
 PARQUET_SOURCE = (
     "data/processed/trips/"
     "trips_2026_08.parquet"

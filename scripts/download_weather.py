@@ -4,7 +4,6 @@ from urbanflow.ingestion.weather import (
     download_weather,
 )
 
-
 OUTPUT = Path(
     "data/processed/weather/"
     "weather_2026_08.parquet"
