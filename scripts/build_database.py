@@ -259,6 +259,119 @@ def main() -> None:
         """
     )
 
+    conn.execute(
+        """
+        CREATE OR REPLACE VIEW weather AS
+
+        SELECT *
+        FROM read_parquet(
+            'data/processed/weather/'
+            'weather_2026_08.parquet'
+        );
+        """
+    )
+
+    conn.execute(
+        """
+        CREATE OR REPLACE TABLE weather_ride_hourly AS
+
+        WITH rides_hourly AS (
+
+            SELECT
+                date,
+                hour,
+
+                ANY_VALUE(weekday)
+                    AS weekday,
+
+                COUNT(*)
+                    AS rides,
+
+                MEDIAN(
+                    duration_minutes
+                ) AS median_duration_minutes
+
+            FROM trips
+
+            GROUP BY
+                date,
+                hour
+        ),
+
+        baseline AS (
+
+            SELECT
+                weekday,
+                hour,
+
+                AVG(rides)
+                    AS expected_rides
+
+            FROM rides_hourly
+
+            GROUP BY
+                weekday,
+                hour
+        )
+
+        SELECT
+            r.date,
+            r.weekday,
+            r.hour,
+
+            r.rides,
+            r.median_duration_minutes,
+
+            b.expected_rides,
+
+            r.rides * 1.0
+            / NULLIF(
+                b.expected_rides,
+                0
+            ) AS demand_index,
+
+            (
+                r.rides * 1.0
+                / NULLIF(
+                    b.expected_rides,
+                    0
+                )
+                - 1
+            ) * 100
+                AS demand_vs_expected_pct,
+
+            w.temperature_c,
+            w.relative_humidity_pct,
+            w.precipitation_mm,
+            w.wind_speed_kmh,
+
+            CASE
+                WHEN w.precipitation_mm = 0
+                    THEN 'No precipitation'
+
+                WHEN w.precipitation_mm < 2.5
+                    THEN 'Light precipitation'
+
+                ELSE
+                    'Moderate / heavy precipitation'
+            END AS precipitation_category
+
+        FROM rides_hourly r
+
+        INNER JOIN baseline b
+            ON r.weekday = b.weekday
+            AND r.hour = b.hour
+
+        INNER JOIN weather w
+            ON r.date = w.date
+            AND r.hour = w.hour
+
+        ORDER BY
+            r.date,
+            r.hour;
+        """
+    )
+
     print()
     print("=" * 60)
     print("ANALYTICS DATABASE READY")
