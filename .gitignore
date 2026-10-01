@@ -6,7 +6,7 @@ __pycache__/
 # Environment
 .env
 
-# Tool caches
+# Cache
 .pytest_cache/
 .ruff_cache/
 .ipynb_checkpoints/
@@ -20,7 +20,8 @@ data/analytics/*
 *.duckdb
 *.duckdb.wal
 
-# OS / IDE
+# IDE / OS
+.vscode/
 .DS_Store
 Thumbs.db
-.vscode/
+
