@@ -26,3 +26,5 @@ data/powerbi/*
 .DS_Store
 Thumbs.db
 
+# Refresh logs
+logs/
