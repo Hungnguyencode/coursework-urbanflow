@@ -1,4 +1,3 @@
-from datetime import date
 from pathlib import Path
 
 import duckdb
@@ -7,21 +6,13 @@ import streamlit as st
 from components.charts import style_figure
 from components.filters import render_trip_filters
 from components.kpis import metric_row
+from components.refresh import (
+    load_refresh_context,
+    sync_refresh_cache,
+)
 
 DATABASE_PATH = Path(
     "data/analytics/urbanflow.duckdb"
-)
-
-ANALYSIS_START = date(
-    2026,
-    8,
-    1,
-)
-
-ANALYSIS_END = date(
-    2026,
-    8,
-    31,
 )
 
 
@@ -29,6 +20,20 @@ st.set_page_config(
     page_title="UrbanFlow",
     page_icon="🚲",
     layout="wide",
+)
+
+refresh = load_refresh_context()
+
+sync_refresh_cache(
+    refresh
+)
+
+ANALYSIS_START = (
+    refresh.start_date
+)
+
+ANALYSIS_END = (
+    refresh.end_date
 )
 
 
@@ -310,17 +315,17 @@ st.caption(
 )
 
 st.markdown(
-    """
-    Exploring Citi Bike mobility patterns across
-    New York City — August 2026.
-    """
+    "Exploring Citi Bike mobility patterns "
+    "across New York City — "
+    f"{refresh.period_label}."
 )
 
 st.caption(
     "Dataset: Citi Bike trip history + "
     "Open-Meteo historical weather | "
-    "Period: August 2026 | "
-    "Processed rides: 5.24M"
+    f"Period: {refresh.period_label} | "
+    "Last refresh: "
+    f"{refresh.last_refresh_label}"
 )
 
 

@@ -2,6 +2,10 @@ import duckdb
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+from components.refresh import (
+    load_refresh_context,
+    sync_refresh_cache,
+)
 
 DATABASE_PATH = "data/analytics/urbanflow.duckdb"
 
@@ -10,6 +14,13 @@ st.set_page_config(
     page_title="Temporal Patterns | UrbanFlow",
     page_icon="⏱️",
     layout="wide",
+)
+
+
+refresh = load_refresh_context()
+
+sync_refresh_cache(
+    refresh
 )
 
 
@@ -155,10 +166,13 @@ st.caption(
 )
 
 st.markdown(
-    """
-    Explore how ride demand changes across hours of the day
-    and days of the week during August 2026.
-    """
+    "Explore how ride demand changes across "
+    "hours of the day and days of the week "
+    f"during {refresh.period_label}."
+)
+
+st.caption(
+    f"Last refresh: {refresh.last_refresh_label}"
 )
 
 

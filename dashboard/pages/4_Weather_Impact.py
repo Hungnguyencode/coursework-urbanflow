@@ -1,6 +1,10 @@
 import duckdb
 import plotly.express as px
 import streamlit as st
+from components.refresh import (
+    load_refresh_context,
+    sync_refresh_cache,
+)
 
 DATABASE_PATH = (
     "data/analytics/urbanflow.duckdb"
@@ -11,6 +15,13 @@ st.set_page_config(
     page_title="Weather Impact | UrbanFlow",
     page_icon="🌦️",
     layout="wide",
+)
+
+
+refresh = load_refresh_context()
+
+sync_refresh_cache(
+    refresh
 )
 
 
@@ -150,11 +161,14 @@ st.caption(
 )
 
 st.markdown(
-    """
-    Hourly Citi Bike demand is joined with historical
-    weather observations for New York City during
-    August 2026.
-    """
+    "Hourly Citi Bike demand is joined with "
+    "historical weather observations for "
+    "New York City during "
+    f"{refresh.period_label}."
+)
+
+st.caption(
+    f"Last refresh: {refresh.last_refresh_label}"
 )
 
 

@@ -2,6 +2,10 @@ import duckdb
 import plotly.express as px
 import pydeck as pdk
 import streamlit as st
+from components.refresh import (
+    load_refresh_context,
+    sync_refresh_cache,
+)
 
 DATABASE_PATH = "data/analytics/urbanflow.duckdb"
 
@@ -10,6 +14,12 @@ st.set_page_config(
     page_title="Mobility Flow | UrbanFlow",
     page_icon="🗺️",
     layout="wide",
+)
+
+refresh = load_refresh_context()
+
+sync_refresh_cache(
+    refresh
 )
 
 
@@ -79,6 +89,11 @@ st.title("Mobility Flow 🗺️")
 
 st.caption(
     "How do Citi Bike trips redistribute bikes across stations?"
+)
+
+st.caption(
+    f"Active data period: {refresh.period_label} | "
+    f"Last refresh: {refresh.last_refresh_label}"
 )
 
 st.markdown(
