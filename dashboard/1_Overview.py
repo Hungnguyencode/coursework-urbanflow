@@ -1,20 +1,30 @@
-from pathlib import Path
-
 import duckdb
 import plotly.express as px
 import streamlit as st
 from components.charts import style_figure
 from components.filters import render_trip_filters
+from components.health import (
+    render_sidebar_health,
+)
 from components.kpis import metric_row
 from components.refresh import (
     load_refresh_context,
     sync_refresh_cache,
 )
-
-DATABASE_PATH = Path(
-    "data/analytics/urbanflow.duckdb"
+from components.ui import (
+    inject_global_css,
+    insight_card,
+    note_card,
+    page_header,
+    section_header,
+    sidebar_data_status,
 )
 
+from urbanflow.config import DATABASE_PATH
+
+# ---------------------------------------------------------
+# PAGE CONFIG
+# ---------------------------------------------------------
 
 st.set_page_config(
     page_title="UrbanFlow",
@@ -22,25 +32,38 @@ st.set_page_config(
     layout="wide",
 )
 
+inject_global_css()
+
+
+# ---------------------------------------------------------
+# REFRESH CONTEXT
+# ---------------------------------------------------------
+
 refresh = load_refresh_context()
 
 sync_refresh_cache(
     refresh
 )
 
-ANALYSIS_START = (
-    refresh.start_date
+ANALYSIS_START = refresh.start_date
+ANALYSIS_END = refresh.end_date
+
+
+sidebar_data_status(
+    period=refresh.period_label,
+    last_refresh=refresh.last_refresh_label,
 )
 
-ANALYSIS_END = (
-    refresh.end_date
+render_sidebar_health(
+    expected_hours=(
+        refresh.period.expected_hours
+    ),
 )
 
 
 # ---------------------------------------------------------
 # DATABASE
 # ---------------------------------------------------------
-
 
 @st.cache_resource
 def get_connection():
@@ -53,7 +76,6 @@ def get_connection():
 # ---------------------------------------------------------
 # FILTER HELPERS
 # ---------------------------------------------------------
-
 
 def build_trip_filter(
     start_date,
@@ -90,7 +112,9 @@ def build_trip_filter(
 
     where_clause = (
         " WHERE "
-        + " AND ".join(conditions)
+        + " AND ".join(
+            conditions
+        )
     )
 
     return (
@@ -102,7 +126,6 @@ def build_trip_filter(
 # ---------------------------------------------------------
 # DATA LOADERS
 # ---------------------------------------------------------
-
 
 @st.cache_data
 def load_summary(
@@ -124,7 +147,8 @@ def load_summary(
 
     query = f"""
         SELECT
-            COUNT(*) AS total_rides,
+            COUNT(*)
+                AS total_rides,
 
             MEDIAN(
                 duration_minutes
@@ -136,7 +160,8 @@ def load_summary(
                     THEN 1
                     ELSE 0
                 END
-            ) * 100 AS member_share,
+            ) * 100
+                AS member_share,
 
             AVG(
                 CASE
@@ -144,7 +169,8 @@ def load_summary(
                     THEN 1
                     ELSE 0
                 END
-            ) * 100 AS electric_share
+            ) * 100
+                AS electric_share
 
         FROM trips
 
@@ -184,9 +210,11 @@ def load_daily_metrics(
 
         {where_clause}
 
-        GROUP BY date
+        GROUP BY
+            date
 
-        ORDER BY date;
+        ORDER BY
+            date;
     """
 
     return conn.execute(
@@ -222,9 +250,11 @@ def load_member_breakdown(
 
         {where_clause}
 
-        GROUP BY member_casual
+        GROUP BY
+            member_casual
 
-        ORDER BY rides DESC;
+        ORDER BY
+            rides DESC;
     """
 
     return conn.execute(
@@ -256,7 +286,8 @@ def load_top_stations(
             start_station_name
                 AS station_name,
 
-            COUNT(*) AS departures
+            COUNT(*)
+                AS departures
 
         FROM trips
 
@@ -284,7 +315,6 @@ def load_top_stations(
 # FORMAT HELPERS
 # ---------------------------------------------------------
 
-
 def format_ride_count(
     value: int,
 ) -> str:
@@ -302,30 +332,20 @@ def format_ride_count(
 
 
 # ---------------------------------------------------------
-# PAGE HEADER
+# HEADER
 # ---------------------------------------------------------
 
-
-st.title(
-    "UrbanFlow 🚲"
-)
-
-st.caption(
-    "Urban Mobility Analytics & Visualization Platform"
-)
-
-st.markdown(
-    "Exploring Citi Bike mobility patterns "
-    "across New York City — "
-    f"{refresh.period_label}."
-)
-
-st.caption(
-    "Dataset: Citi Bike trip history + "
-    "Open-Meteo historical weather | "
-    f"Period: {refresh.period_label} | "
-    "Last refresh: "
-    f"{refresh.last_refresh_label}"
+page_header(
+    title="UrbanFlow",
+    icon="🚲",
+    subtitle=(
+        "A mobility intelligence dashboard for exploring "
+        "ridership demand, rider behavior, station activity "
+        "and weather effects across New York City's "
+        "Citi Bike network."
+    ),
+    period=refresh.period_label,
+    last_refresh=refresh.last_refresh_label,
 )
 
 
@@ -333,17 +353,17 @@ st.caption(
 # FILTERS
 # ---------------------------------------------------------
 
-
 filters = render_trip_filters(
     min_date=ANALYSIS_START,
     max_date=ANALYSIS_END,
 )
 
 st.caption(
-    "Active filters: "
+    "Active filters · "
     f"{filters['rider_label']} · "
     f"{filters['bike_label']} · "
-    f"{filters['start_date']:%b %d, %Y} → "
+    f"{filters['start_date']:%b %d, %Y} "
+    "→ "
     f"{filters['end_date']:%b %d, %Y}"
 )
 
@@ -352,14 +372,12 @@ st.caption(
 # KPI SUMMARY
 # ---------------------------------------------------------
 
-
 summary = load_summary(
     filters["start_date"],
     filters["end_date"],
     filters["rider_type"],
     filters["bike_type"],
 ).iloc[0]
-
 
 total_rides = int(
     summary["total_rides"]
@@ -379,7 +397,6 @@ electric_share = float(
     summary["electric_share"]
     or 0
 )
-
 
 metric_row(
     [
@@ -406,67 +423,16 @@ metric_row(
 
 
 # ---------------------------------------------------------
-# KEY FINDINGS
+# MAIN STORY
 # ---------------------------------------------------------
 
-
-st.markdown(
-    "### Key Findings"
+section_header(
+    "Mobility Snapshot",
+    (
+        "Daily demand trend and rider composition "
+        "for the current filter selection."
+    ),
 )
-
-finding1, finding2, finding3 = (
-    st.columns(3)
-)
-
-
-with finding1:
-    st.info(
-        """
-        **Commuter-oriented demand**
-
-        Weekday ridership shows strong morning and
-        evening peaks, especially around 08:00 and
-        17:00–18:00.
-        """
-    )
-
-
-with finding2:
-    st.info(
-        """
-        **Weekend behavior differs**
-
-        Weekend demand shifts toward midday and
-        afternoon rather than showing the same
-        commuter peak structure.
-        """
-    )
-
-
-with finding3:
-    st.info(
-        """
-        **Rain is associated with lower demand**
-
-        After adjusting for weekday and hour,
-        wetter conditions are associated with
-        below-expected ride demand.
-        """
-    )
-
-
-st.divider()
-
-
-# ---------------------------------------------------------
-# DAILY RIDE VOLUME
-# ---------------------------------------------------------
-
-
-st.subheader(
-    "Daily Ride Volume"
-)
-
 
 daily = load_daily_metrics(
     filters["start_date"],
@@ -475,74 +441,152 @@ daily = load_daily_metrics(
     filters["bike_type"],
 )
 
-
-daily_fig = px.line(
-    daily,
-    x="date",
-    y="rides",
-    markers=True,
-    labels={
-        "date": "Date",
-        "rides": "Rides",
-    },
-)
-
-
-style_figure(
-    daily_fig,
-    height=430,
-)
-
-daily_fig.update_layout(
-    xaxis_title=None,
-)
-
-
-st.plotly_chart(
-    daily_fig,
-    width="stretch",
-)
-
-
-st.divider()
-
-
-# ---------------------------------------------------------
-# RIDER MIX + TOP STATIONS
-# ---------------------------------------------------------
-
-
-left, right = st.columns(2)
-
-
-with left:
-    member_data = (
-        load_member_breakdown(
-            filters["start_date"],
-            filters["end_date"],
-            filters["rider_type"],
-            filters["bike_type"],
-        )
+member_data = (
+    load_member_breakdown(
+        filters["start_date"],
+        filters["end_date"],
+        filters["rider_type"],
+        filters["bike_type"],
     )
+)
 
-    member_fig = px.bar(
-        member_data,
-        x="member_casual",
+main_left, main_right = st.columns(
+    [2.1, 1],
+    gap="large",
+)
+
+
+# ---------------------------------------------------------
+# DAILY TREND
+# ---------------------------------------------------------
+
+with main_left:
+    daily_fig = px.area(
+        daily,
+        x="date",
         y="rides",
-        title=(
-            "Member vs Casual Rides"
-        ),
+        markers=True,
         labels={
-            "member_casual":
-                "Rider Type",
+            "date":
+                "Date",
             "rides":
                 "Rides",
         },
+        title=(
+            "Daily Ride Volume"
+        ),
     )
 
     style_figure(
-        member_fig,
-        height=420,
+        daily_fig,
+        height=430,
+    )
+
+    daily_fig.update_traces(
+        line={
+            "width": 3,
+            "color": "#0F6CBD",
+        },
+        marker={
+            "size": 6,
+            "color": "#0F6CBD",
+        },
+        fillcolor=(
+            "rgba(15,108,189,0.10)"
+        ),
+    )
+
+    daily_fig.update_layout(
+        xaxis_title=None,
+        showlegend=False,
+    )
+
+    daily_fig.update_xaxes(
+        tickformat="%b %d",
+    )
+
+    st.plotly_chart(
+        daily_fig,
+        width="stretch",
+    )
+
+
+# ---------------------------------------------------------
+# RIDER MIX
+# ---------------------------------------------------------
+
+with main_right:
+    rider_colors = {
+        "member": "#0F6CBD",
+        "casual": "#14B8A6",
+    }
+
+    member_fig = px.pie(
+        member_data,
+        values="rides",
+        names="member_casual",
+        hole=0.64,
+        color="member_casual",
+        color_discrete_map=(
+            rider_colors
+        ),
+        title="Rider Mix",
+    )
+
+    member_fig.update_traces(
+        textposition="inside",
+        textinfo="percent",
+        marker={
+            "line": {
+                "color": "#FFFFFF",
+                "width": 3,
+            },
+        },
+        hovertemplate=(
+            "<b>%{label}</b><br>"
+            "Rides: %{value:,}<br>"
+            "Share: %{percent}"
+            "<extra></extra>"
+        ),
+    )
+
+    member_fig.add_annotation(
+        text=(
+            f"<b>{format_ride_count(total_rides)}</b>"
+            "<br><span style='font-size:12px'>rides</span>"
+        ),
+        x=0.5,
+        y=0.5,
+        showarrow=False,
+        font={
+            "size": 20,
+            "color": "#0B1F33",
+        },
+    )
+
+    member_fig.update_layout(
+        template="plotly_white",
+        height=430,
+        margin={
+            "l": 20,
+            "r": 20,
+            "t": 65,
+            "b": 20,
+        },
+        paper_bgcolor=(
+            "rgba(0,0,0,0)"
+        ),
+        plot_bgcolor=(
+            "rgba(0,0,0,0)"
+        ),
+        showlegend=False,
+        title={
+            "font": {
+                "size": 18,
+                "color": "#0B1F33",
+            },
+            "x": 0.03,
+        },
     )
 
     st.plotly_chart(
@@ -551,14 +595,36 @@ with left:
     )
 
 
-with right:
-    stations = load_top_stations(
-        filters["start_date"],
-        filters["end_date"],
-        filters["rider_type"],
-        filters["bike_type"],
-    )
+# ---------------------------------------------------------
+# STATIONS + FINDINGS
+# ---------------------------------------------------------
 
+section_header(
+    "Network Activity & Findings",
+    (
+        "Identify high-demand departure locations "
+        "and the strongest behavioral signals."
+    ),
+)
+
+stations = load_top_stations(
+    filters["start_date"],
+    filters["end_date"],
+    filters["rider_type"],
+    filters["bike_type"],
+)
+
+bottom_left, bottom_right = st.columns(
+    [2.1, 1],
+    gap="large",
+)
+
+
+# ---------------------------------------------------------
+# TOP STATIONS
+# ---------------------------------------------------------
+
+with bottom_left:
     station_fig = px.bar(
         stations.sort_values(
             "departures",
@@ -580,7 +646,17 @@ with right:
 
     style_figure(
         station_fig,
-        height=420,
+        height=470,
+    )
+
+    station_fig.update_traces(
+        marker_color="#0F6CBD",
+        marker_line_width=0,
+    )
+
+    station_fig.update_layout(
+        yaxis_title=None,
+        showlegend=False,
     )
 
     st.plotly_chart(
@@ -590,16 +666,89 @@ with right:
 
 
 # ---------------------------------------------------------
-# PIPELINE NOTE
+# FINDINGS COLUMN
 # ---------------------------------------------------------
 
+with bottom_right:
+    insight_card(
+        title="Commuter-oriented demand",
+        icon="🚇",
+        accent="#0F6CBD",
+        body=(
+            "Weekday ridership shows distinct "
+            "morning and evening peaks, especially "
+            "around 08:00 and 17:00–18:00."
+        ),
+    )
 
-st.divider()
+    st.write("")
 
-st.caption(
-    """
-    UrbanFlow transforms raw mobility and weather data
-    through a reproducible Python → Polars → Parquet →
-    DuckDB analytics pipeline before visualization.
-    """
+    insight_card(
+        title="Weekend behavior differs",
+        icon="🌤️",
+        accent="#14B8A6",
+        body=(
+            "Weekend demand shifts toward midday "
+            "and afternoon rather than following "
+            "the same commuter peak structure."
+        ),
+    )
+
+    st.write("")
+
+    insight_card(
+        title="Rain suppresses demand",
+        icon="🌧️",
+        accent="#EF4444",
+        body=(
+            "After adjusting for weekday and hour, "
+            "wetter conditions are associated with "
+            "below-expected ride demand."
+        ),
+    )
+
+
+# ---------------------------------------------------------
+# EXPORT
+# ---------------------------------------------------------
+
+section_header(
+    "Filtered Data",
+    (
+        "Export the currently displayed daily demand "
+        "summary for additional analysis."
+    ),
 )
+
+csv_data = daily.to_csv(
+    index=False
+).encode(
+    "utf-8"
+)
+
+export_left, export_right = st.columns(
+    [1, 3],
+)
+
+with export_left:
+    st.download_button(
+        label="⬇️ Download daily metrics",
+        data=csv_data,
+        file_name=(
+            "urbanflow_daily_metrics_"
+            f"{refresh.period.file_suffix}.csv"
+        ),
+        mime="text/csv",
+        use_container_width=True,
+    )
+
+with export_right:
+    note_card(
+        title="Reproducible analytics pipeline",
+        body=(
+            "UrbanFlow transforms Citi Bike mobility and "
+            "Open-Meteo weather data through Python, "
+            "Polars, Parquet and DuckDB before rendering "
+            "the interactive Streamlit dashboard."
+        ),
+    )

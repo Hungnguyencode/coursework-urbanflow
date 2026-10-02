@@ -1,15 +1,28 @@
 import duckdb
 import plotly.express as px
 import streamlit as st
+from components.charts import style_figure
+from components.health import (
+    render_sidebar_health,
+)
 from components.refresh import (
     load_refresh_context,
     sync_refresh_cache,
 )
-
-DATABASE_PATH = (
-    "data/analytics/urbanflow.duckdb"
+from components.ui import (
+    inject_global_css,
+    insight_card,
+    note_card,
+    page_header,
+    section_header,
+    sidebar_data_status,
 )
 
+from urbanflow.config import DATABASE_PATH
+
+# ---------------------------------------------------------
+# PAGE CONFIG
+# ---------------------------------------------------------
 
 st.set_page_config(
     page_title="Weather Impact | UrbanFlow",
@@ -17,6 +30,12 @@ st.set_page_config(
     layout="wide",
 )
 
+inject_global_css()
+
+
+# ---------------------------------------------------------
+# REFRESH CONTEXT
+# ---------------------------------------------------------
 
 refresh = load_refresh_context()
 
@@ -24,14 +43,33 @@ sync_refresh_cache(
     refresh
 )
 
+sidebar_data_status(
+    period=refresh.period_label,
+    last_refresh=refresh.last_refresh_label,
+)
+
+render_sidebar_health(
+    expected_hours=(
+        refresh.period.expected_hours
+    ),
+)
+
+
+# ---------------------------------------------------------
+# DATABASE
+# ---------------------------------------------------------
 
 @st.cache_resource
 def get_connection():
     return duckdb.connect(
-        DATABASE_PATH,
+        str(DATABASE_PATH),
         read_only=True,
     )
 
+
+# ---------------------------------------------------------
+# DATA LOADERS
+# ---------------------------------------------------------
 
 @st.cache_data
 def load_weather_hourly():
@@ -99,7 +137,8 @@ def load_precipitation_summary():
         SELECT
             precipitation_category,
 
-            COUNT(*) AS hours,
+            COUNT(*)
+                AS hours,
 
             AVG(
                 demand_vs_expected_pct
@@ -126,16 +165,15 @@ def load_temperature_bins():
         SELECT
             CASE
                 WHEN temperature_c < 20
-                    THEN '< 20°C'
+                THEN '< 20°C'
 
                 WHEN temperature_c < 25
-                    THEN '20–25°C'
+                THEN '20–25°C'
 
                 WHEN temperature_c < 30
-                    THEN '25–30°C'
+                THEN '25–30°C'
 
-                ELSE
-                    '30°C+'
+                ELSE '30°C+'
             END AS temperature_band,
 
             AVG(
@@ -147,30 +185,32 @@ def load_temperature_bins():
 
         FROM weather_ride_hourly
 
-        GROUP BY temperature_band;
+        GROUP BY
+            temperature_band;
         """
     ).fetchdf()
 
 
-st.title(
-    "Weather Impact 🌦️"
+# ---------------------------------------------------------
+# HEADER
+# ---------------------------------------------------------
+
+page_header(
+    title="Weather Impact",
+    icon="🌦️",
+    subtitle=(
+        "Explore how temperature and precipitation are "
+        "associated with Citi Bike demand after adjusting "
+        "for normal weekday and hourly travel patterns."
+    ),
+    period=refresh.period_label,
+    last_refresh=refresh.last_refresh_label,
 )
 
-st.caption(
-    "How is Citi Bike demand associated with weather?"
-)
 
-st.markdown(
-    "Hourly Citi Bike demand is joined with "
-    "historical weather observations for "
-    "New York City during "
-    f"{refresh.period_label}."
-)
-
-st.caption(
-    f"Last refresh: {refresh.last_refresh_label}"
-)
-
+# ---------------------------------------------------------
+# LOAD DATA
+# ---------------------------------------------------------
 
 data = load_weather_hourly()
 
@@ -179,6 +219,18 @@ summary = (
     .iloc[0]
 )
 
+precip = (
+    load_precipitation_summary()
+)
+
+temperature = (
+    load_temperature_bins()
+)
+
+
+# ---------------------------------------------------------
+# KPI SUMMARY
+# ---------------------------------------------------------
 
 temp_corr = float(
     summary["temp_correlation"]
@@ -197,34 +249,34 @@ wet_avg = float(
 )
 
 wet_difference = (
-    wet_avg - dry_avg
+    wet_avg
+    - dry_avg
 )
 
-
-col1, col2, col3, col4 = (
-    st.columns(4)
+kpi1, kpi2, kpi3, kpi4 = st.columns(
+    4,
+    gap="medium",
 )
 
-
-with col1:
+with kpi1:
     st.metric(
-        "Adjusted Temp Association",
+        "Temp Association",
         f"{temp_corr:+.2f}",
     )
 
-with col2:
+with kpi2:
     st.metric(
-        "Adjusted Rain Association",
+        "Rain Association",
         f"{rain_corr:+.2f}",
     )
 
-with col3:
+with kpi3:
     st.metric(
         "Dry Hours vs Expected",
         f"{dry_avg:+.1f}%",
     )
 
-with col4:
+with kpi4:
     st.metric(
         "Wet vs Dry",
         f"{wet_difference:+.1f} pp",
@@ -232,61 +284,85 @@ with col4:
 
 
 st.caption(
-    """
-    Correlation describes association only and
-    should not be interpreted as causal effect.
-    """
+    "Associations are descriptive and should not "
+    "be interpreted as causal effects."
 )
-
-
-st.divider()
 
 
 # ---------------------------------------------------------
 # TEMPERATURE SCATTER
 # ---------------------------------------------------------
 
-st.subheader(
-    "Temperature and Hourly Ride Demand"
+section_header(
+    "Temperature & Adjusted Demand",
+    (
+        "Each point represents one hour. "
+        "Demand is measured relative to the normal "
+        "weekday–hour baseline."
+    ),
 )
-
 
 temp_fig = px.scatter(
     data,
-
     x="temperature_c",
     y="demand_vs_expected_pct",
-
     color="precipitation_mm",
-
-    opacity=0.65,
-
-    hover_data=[
-        "date",
-        "hour",
-        "rides",
-        "expected_rides",
+    opacity=0.72,
+    hover_data={
+        "date": True,
+        "hour": True,
+        "rides": ":,",
+        "expected_rides": ":,.0f",
+        "temperature_c": ":.1f",
+        "precipitation_mm": ":.1f",
+    },
+    color_continuous_scale=[
+        [0.00, "#DDF3FF"],
+        [0.25, "#9DD9F3"],
+        [0.50, "#4EA8DE"],
+        [0.75, "#2166AC"],
+        [1.00, "#08306B"],
     ],
-
     labels={
         "temperature_c":
             "Temperature (°C)",
-
         "demand_vs_expected_pct":
             "Demand vs Expected (%)",
-
         "precipitation_mm":
             "Precipitation (mm)",
     },
-
     title=(
-        "Weather-adjusted Ride Demand vs Temperature"
+        "Weather-adjusted Ride Demand "
+        "vs Temperature"
     ),
+)
+
+style_figure(
+    temp_fig,
+    height=500,
 )
 
 temp_fig.add_hline(
     y=0,
     line_dash="dash",
+    line_color="#64748B",
+    line_width=1.5,
+)
+
+temp_fig.update_traces(
+    marker={
+        "size": 8,
+        "line": {
+            "width": 0,
+        },
+    },
+)
+
+temp_fig.update_layout(
+    coloraxis_colorbar={
+        "title": "Rain (mm)",
+        "thickness": 14,
+    },
 )
 
 st.plotly_chart(
@@ -295,60 +371,97 @@ st.plotly_chart(
 )
 
 
-st.divider()
-
-
 # ---------------------------------------------------------
 # PRECIPITATION + TEMP BANDS
 # ---------------------------------------------------------
 
-left, right = st.columns(2)
+section_header(
+    "Weather Condition Comparison",
+    (
+        "Compare average adjusted demand across "
+        "precipitation severity and temperature ranges."
+    ),
+)
 
+left, right = st.columns(
+    2,
+    gap="large",
+)
+
+
+# ---------------------------------------------------------
+# PRECIPITATION CATEGORIES
+# ---------------------------------------------------------
 
 with left:
-    precip = (
-        load_precipitation_summary()
-    )
+    precipitation_order = [
+        "No precipitation",
+        "Light precipitation",
+        "Moderate / heavy precipitation",
+    ]
+
+    precip_colors = {
+        "No precipitation":
+            "#14B8A6",
+        "Light precipitation":
+            "#F59E0B",
+        "Moderate / heavy precipitation":
+            "#EF4444",
+    }
 
     precip_fig = px.bar(
         precip,
-
         x="precipitation_category",
         y="avg_vs_expected_pct",
-
+        color="precipitation_category",
         hover_data={
             "hours": True,
-            "avg_vs_expected_pct": ":.1f",
+            "avg_vs_expected_pct":
+                ":.1f",
         },
-
+        category_orders={
+            "precipitation_category":
+                precipitation_order,
+        },
+        color_discrete_map=(
+            precip_colors
+        ),
         title=(
-            "Ride Demand vs Expected "
+            "Demand vs Expected "
             "by Precipitation"
         ),
-
         labels={
             "precipitation_category":
                 "Weather",
-
             "avg_vs_expected_pct":
                 "Demand vs Expected (%)",
-
             "hours":
                 "Observed Hours",
         },
+    )
 
-        category_orders={
-            "precipitation_category": [
-                "No precipitation",
-                "Light precipitation",
-                "Moderate / heavy precipitation",
-            ]
-        },
+    style_figure(
+        precip_fig,
+        height=430,
     )
 
     precip_fig.add_hline(
         y=0,
         line_dash="dash",
+        line_color="#64748B",
+        line_width=1.25,
+    )
+
+    precip_fig.update_traces(
+        marker_line_width=0,
+    )
+
+    precip_fig.update_layout(
+        showlegend=False,
+    )
+
+    precip_fig.update_xaxes(
+        tickangle=-12,
     )
 
     st.plotly_chart(
@@ -357,11 +470,11 @@ with left:
     )
 
 
-with right:
-    temperature = (
-        load_temperature_bins()
-    )
+# ---------------------------------------------------------
+# TEMPERATURE BANDS
+# ---------------------------------------------------------
 
+with right:
     temperature_order = [
         "< 20°C",
         "20–25°C",
@@ -369,42 +482,66 @@ with right:
         "30°C+",
     ]
 
+    temperature_colors = {
+        "< 20°C":
+            "#9DD9F3",
+        "20–25°C":
+            "#4EA8DE",
+        "25–30°C":
+            "#0F6CBD",
+        "30°C+":
+            "#083C6B",
+    }
+
     temp_band_fig = px.bar(
         temperature,
-
         x="temperature_band",
         y="avg_vs_expected_pct",
-
+        color="temperature_band",
         hover_data={
             "observed_hours": True,
-            "avg_vs_expected_pct": ":.1f",
+            "avg_vs_expected_pct":
+                ":.1f",
         },
-
         category_orders={
             "temperature_band":
                 temperature_order,
         },
-
+        color_discrete_map=(
+            temperature_colors
+        ),
         title=(
-            "Ride Demand vs Expected "
+            "Demand vs Expected "
             "by Temperature Band"
         ),
-
         labels={
             "temperature_band":
                 "Temperature",
-
             "avg_vs_expected_pct":
                 "Demand vs Expected (%)",
-
             "observed_hours":
                 "Observed Hours",
         },
     )
 
+    style_figure(
+        temp_band_fig,
+        height=430,
+    )
+
     temp_band_fig.add_hline(
         y=0,
         line_dash="dash",
+        line_color="#64748B",
+        line_width=1.25,
+    )
+
+    temp_band_fig.update_traces(
+        marker_line_width=0,
+    )
+
+    temp_band_fig.update_layout(
+        showlegend=False,
     )
 
     st.plotly_chart(
@@ -413,69 +550,174 @@ with right:
     )
 
 
-st.divider()
-
-
 # ---------------------------------------------------------
-# PRECIPITATION TIME SERIES
+# WET HOURS
 # ---------------------------------------------------------
 
-st.subheader(
-    "Rain Events and Ride Demand"
+section_header(
+    "Rain Events & Demand",
+    (
+        "Focus specifically on wet hours to examine how "
+        "larger precipitation events coincide with "
+        "above- or below-expected ridership."
+    ),
 )
-
 
 rain_events = data[
     data["precipitation_mm"] > 0
 ].copy()
 
+if rain_events.empty:
+    st.info(
+        "No precipitation events are present "
+        "in the active dataset."
+    )
 
-rain_fig = px.scatter(
-    rain_events,
+else:
+    rain_fig = px.scatter(
+        rain_events,
+        x="precipitation_mm",
+        y="demand_vs_expected_pct",
+        size="precipitation_mm",
+        color="temperature_c",
+        opacity=0.72,
+        hover_data={
+            "date": True,
+            "hour": True,
+            "temperature_c":
+                ":.1f",
+            "rides":
+                ":,",
+            "expected_rides":
+                ":,.0f",
+        },
+        color_continuous_scale=[
+            [0.00, "#9DD9F3"],
+            [0.50, "#4EA8DE"],
+            [1.00, "#0F6CBD"],
+        ],
+        labels={
+            "precipitation_mm":
+                "Precipitation (mm)",
+            "demand_vs_expected_pct":
+                "Demand vs Expected (%)",
+            "temperature_c":
+                "Temperature (°C)",
+        },
+        title=(
+            "Adjusted Ride Demand "
+            "During Wet Hours"
+        ),
+    )
 
-    x="precipitation_mm",
-    y="demand_vs_expected_pct",
+    style_figure(
+        rain_fig,
+        height=470,
+    )
 
-    size="precipitation_mm",
+    rain_fig.add_hline(
+        y=0,
+        line_dash="dash",
+        line_color="#64748B",
+        line_width=1.5,
+    )
 
-    hover_data=[
-        "date",
-        "hour",
-        "temperature_c",
-        "rides",
-        "expected_rides",
-    ],
+    rain_fig.update_layout(
+        coloraxis_colorbar={
+            "title": "Temp °C",
+            "thickness": 14,
+        },
+    )
 
-    labels={
-        "precipitation_mm":
-            "Precipitation (mm)",
+    st.plotly_chart(
+        rain_fig,
+        width="stretch",
+    )
 
-        "demand_vs_expected_pct":
-            "Demand vs Expected (%)",
-    },
 
-    title=(
-        "Adjusted Ride Demand During Wet Hours"
+# ---------------------------------------------------------
+# INTERPRETATION CARDS
+# ---------------------------------------------------------
+
+section_header(
+    "Weather Interpretation",
+    (
+        "Key signals from the weather-adjusted "
+        "mobility analysis."
     ),
 )
 
-rain_fig.add_hline(
-    y=0,
-    line_dash="dash",
+wet_label = (
+    "lower"
+    if wet_difference < 0
+    else "higher"
 )
 
-
-st.plotly_chart(
-    rain_fig,
-    width="stretch",
+rain_label = (
+    "negative"
+    if rain_corr < 0
+    else "positive"
 )
 
+temp_label = (
+    "positive"
+    if temp_corr > 0
+    else "negative"
+)
 
-st.info(
-    """
-    Weather data is represented by a single
-    New York City reference location, so it
-    approximates city-level conditions rather
-    than station-specific microclimates.
-    """
+insight1, insight2, insight3 = st.columns(
+    3,
+    gap="medium",
+)
+
+with insight1:
+    insight_card(
+        title="Wet-hour penalty",
+        icon="🌧️",
+        accent="#EF4444",
+        body=(
+            f"Wet hours average {abs(wet_difference):.1f} "
+            f"percentage points {wet_label} demand than "
+            "dry hours after adjusting for normal "
+            "weekday and hourly patterns."
+        ),
+    )
+
+with insight2:
+    insight_card(
+        title="Rain association",
+        icon="☔",
+        accent="#F59E0B",
+        body=(
+            f"Precipitation has a {rain_label} "
+            "association with adjusted demand "
+            f"(r = {rain_corr:+.2f})."
+        ),
+    )
+
+with insight3:
+    insight_card(
+        title="Temperature association",
+        icon="🌡️",
+        accent="#0F6CBD",
+        body=(
+            f"Temperature shows a {temp_label} "
+            "relationship with adjusted demand "
+            f"(r = {temp_corr:+.2f})."
+        ),
+    )
+
+
+# ---------------------------------------------------------
+# DATA CAVEAT
+# ---------------------------------------------------------
+
+note_card(
+    title="Weather coverage note",
+    body=(
+        "Weather observations represent a single "
+        "New York City reference location. They "
+        "approximate city-level conditions rather "
+        "than station-specific microclimates."
+    ),
 )
