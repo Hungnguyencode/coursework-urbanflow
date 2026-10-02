@@ -2,9 +2,7 @@ import duckdb
 import plotly.express as px
 import streamlit as st
 from components.charts import style_figure
-from components.health import (
-    render_sidebar_health,
-)
+from components.health import render_sidebar_health
 from components.refresh import (
     load_refresh_context,
     sync_refresh_cache,
@@ -13,6 +11,7 @@ from components.ui import (
     inject_global_css,
     insight_card,
     note_card,
+    page_footer,
     page_header,
     section_header,
     sidebar_data_status,
@@ -78,7 +77,9 @@ def load_weather_hourly():
     return conn.execute(
         """
         SELECT *
+
         FROM weather_ride_hourly
+
         ORDER BY
             date,
             hour;
@@ -165,13 +166,13 @@ def load_temperature_bins():
         SELECT
             CASE
                 WHEN temperature_c < 20
-                THEN '< 20°C'
+                    THEN '< 20°C'
 
                 WHEN temperature_c < 25
-                THEN '20–25°C'
+                    THEN '20–25°C'
 
                 WHEN temperature_c < 30
-                THEN '25–30°C'
+                    THEN '25–30°C'
 
                 ELSE '30°C+'
             END AS temperature_band,
@@ -192,16 +193,16 @@ def load_temperature_bins():
 
 
 # ---------------------------------------------------------
-# HEADER
+# HERO
 # ---------------------------------------------------------
 
 page_header(
     title="Weather Impact",
     icon="🌦️",
     subtitle=(
-        "Explore how temperature and precipitation are "
-        "associated with Citi Bike demand after adjusting "
-        "for normal weekday and hourly travel patterns."
+        "Explore how temperature and precipitation move "
+        "alongside Citi Bike demand after accounting for "
+        "normal weekday and hourly travel patterns."
     ),
     period=refresh.period_label,
     last_refresh=refresh.last_refresh_label,
@@ -219,13 +220,9 @@ summary = (
     .iloc[0]
 )
 
-precip = (
-    load_precipitation_summary()
-)
+precip = load_precipitation_summary()
 
-temperature = (
-    load_temperature_bins()
-)
+temperature = load_temperature_bins()
 
 
 # ---------------------------------------------------------
@@ -253,10 +250,12 @@ wet_difference = (
     - dry_avg
 )
 
+
 kpi1, kpi2, kpi3, kpi4 = st.columns(
     4,
     gap="medium",
 )
+
 
 with kpi1:
     st.metric(
@@ -264,17 +263,20 @@ with kpi1:
         f"{temp_corr:+.2f}",
     )
 
+
 with kpi2:
     st.metric(
         "Rain Association",
         f"{rain_corr:+.2f}",
     )
 
+
 with kpi3:
     st.metric(
         "Dry Hours vs Expected",
         f"{dry_avg:+.1f}%",
     )
+
 
 with kpi4:
     st.metric(
@@ -284,8 +286,55 @@ with kpi4:
 
 
 st.caption(
-    "Associations are descriptive and should not "
-    "be interpreted as causal effects."
+    "DESCRIPTIVE ANALYSIS  ·  Associations shown here "
+    "should not be interpreted as causal effects."
+)
+
+
+# ---------------------------------------------------------
+# LABEL HELPERS
+# ---------------------------------------------------------
+
+wet_label = (
+    "lower"
+    if wet_difference < 0
+    else "higher"
+)
+
+rain_label = (
+    "negative"
+    if rain_corr < 0
+    else "positive"
+)
+
+temp_label = (
+    "positive"
+    if temp_corr > 0
+    else "negative"
+)
+
+
+# ---------------------------------------------------------
+# 01 · WEATHER SIGNAL
+# ---------------------------------------------------------
+
+section_header(
+    "Weather Signal",
+    (
+        "Each point represents one hour. Adjusted demand "
+        "shows performance relative to the normal "
+        "weekday–hour baseline."
+    ),
+    index="01 · WEATHER SIGNAL",
+)
+
+
+signal_left, signal_right = st.columns(
+    [
+        2.2,
+        1,
+    ],
+    gap="large",
 )
 
 
@@ -293,95 +342,162 @@ st.caption(
 # TEMPERATURE SCATTER
 # ---------------------------------------------------------
 
-section_header(
-    "Temperature & Adjusted Demand",
-    (
-        "Each point represents one hour. "
-        "Demand is measured relative to the normal "
-        "weekday–hour baseline."
-    ),
-)
-
-temp_fig = px.scatter(
-    data,
-    x="temperature_c",
-    y="demand_vs_expected_pct",
-    color="precipitation_mm",
-    opacity=0.72,
-    hover_data={
-        "date": True,
-        "hour": True,
-        "rides": ":,",
-        "expected_rides": ":,.0f",
-        "temperature_c": ":.1f",
-        "precipitation_mm": ":.1f",
-    },
-    color_continuous_scale=[
-        [0.00, "#DDF3FF"],
-        [0.25, "#9DD9F3"],
-        [0.50, "#4EA8DE"],
-        [0.75, "#2166AC"],
-        [1.00, "#08306B"],
-    ],
-    labels={
-        "temperature_c":
-            "Temperature (°C)",
-        "demand_vs_expected_pct":
-            "Demand vs Expected (%)",
-        "precipitation_mm":
-            "Precipitation (mm)",
-    },
-    title=(
-        "Weather-adjusted Ride Demand "
-        "vs Temperature"
-    ),
-)
-
-style_figure(
-    temp_fig,
-    height=500,
-)
-
-temp_fig.add_hline(
-    y=0,
-    line_dash="dash",
-    line_color="#64748B",
-    line_width=1.5,
-)
-
-temp_fig.update_traces(
-    marker={
-        "size": 8,
-        "line": {
-            "width": 0,
+with signal_left:
+    temp_fig = px.scatter(
+        data,
+        x="temperature_c",
+        y="demand_vs_expected_pct",
+        color="precipitation_mm",
+        opacity=0.72,
+        hover_data={
+            "date": True,
+            "hour": True,
+            "rides": ":,",
+            "expected_rides": ":,.0f",
+            "temperature_c": ":.1f",
+            "precipitation_mm": ":.1f",
         },
-    },
-)
+        color_continuous_scale=[
+            [
+                0.00,
+                "#DDF3FF",
+            ],
+            [
+                0.25,
+                "#9DD9F3",
+            ],
+            [
+                0.50,
+                "#4EA8DE",
+            ],
+            [
+                0.75,
+                "#2166AC",
+            ],
+            [
+                1.00,
+                "#08306B",
+            ],
+        ],
+        labels={
+            "temperature_c":
+                "Temperature (°C)",
+            "demand_vs_expected_pct":
+                "Demand vs Expected (%)",
+            "precipitation_mm":
+                "Precipitation (mm)",
+        },
+        title=(
+            "Weather-adjusted Ride Demand "
+            "vs Temperature"
+        ),
+    )
 
-temp_fig.update_layout(
-    coloraxis_colorbar={
-        "title": "Rain (mm)",
-        "thickness": 14,
-    },
-)
 
-st.plotly_chart(
-    temp_fig,
-    width="stretch",
-)
+    style_figure(
+        temp_fig,
+        height=540,
+    )
+
+
+    temp_fig.add_hline(
+        y=0,
+        line_dash="dash",
+        line_color="#64748B",
+        line_width=1.5,
+    )
+
+
+    temp_fig.update_traces(
+        marker={
+            "size": 8,
+            "line": {
+                "width": 0,
+            },
+        },
+    )
+
+
+    temp_fig.update_layout(
+        coloraxis_colorbar={
+            "title": "Rain (mm)",
+            "thickness": 14,
+        },
+    )
+
+
+    st.plotly_chart(
+        temp_fig,
+        width="stretch",
+    )
 
 
 # ---------------------------------------------------------
-# PRECIPITATION + TEMP BANDS
+# WEATHER STORY
+# ---------------------------------------------------------
+
+with signal_right:
+    st.caption(
+        "WEATHER STORY"
+    )
+
+
+    insight_card(
+        title="Wet-hour penalty",
+        icon="🌧️",
+        accent="#EF4444",
+        body=(
+            f"Wet hours average {abs(wet_difference):.1f} "
+            f"percentage points {wet_label} demand than "
+            "dry hours after adjusting for normal weekday "
+            "and hourly patterns."
+        ),
+    )
+
+
+    st.write("")
+
+
+    insight_card(
+        title="Rain association",
+        icon="☔",
+        accent="#F59E0B",
+        body=(
+            f"Precipitation has a {rain_label} association "
+            "with adjusted demand "
+            f"(r = {rain_corr:+.2f})."
+        ),
+    )
+
+
+    st.write("")
+
+
+    insight_card(
+        title="Temperature association",
+        icon="🌡️",
+        accent="#0F6CBD",
+        body=(
+            f"Temperature shows a {temp_label} relationship "
+            "with adjusted demand "
+            f"(r = {temp_corr:+.2f})."
+        ),
+    )
+
+
+# ---------------------------------------------------------
+# 02 · CONDITION CONTRAST
 # ---------------------------------------------------------
 
 section_header(
-    "Weather Condition Comparison",
+    "Condition Contrast",
     (
-        "Compare average adjusted demand across "
+        "Compare average weather-adjusted demand across "
         "precipitation severity and temperature ranges."
     ),
+    index="02 · CONDITION CONTRAST",
 )
+
 
 left, right = st.columns(
     2,
@@ -400,14 +516,18 @@ with left:
         "Moderate / heavy precipitation",
     ]
 
+
     precip_colors = {
         "No precipitation":
             "#14B8A6",
+
         "Light precipitation":
             "#F59E0B",
+
         "Moderate / heavy precipitation":
             "#EF4444",
     }
+
 
     precip_fig = px.bar(
         precip,
@@ -440,10 +560,12 @@ with left:
         },
     )
 
+
     style_figure(
         precip_fig,
-        height=430,
+        height=445,
     )
+
 
     precip_fig.add_hline(
         y=0,
@@ -452,17 +574,22 @@ with left:
         line_width=1.25,
     )
 
+
     precip_fig.update_traces(
         marker_line_width=0,
     )
+
 
     precip_fig.update_layout(
         showlegend=False,
     )
 
+
     precip_fig.update_xaxes(
         tickangle=-12,
+        title=None,
     )
+
 
     st.plotly_chart(
         precip_fig,
@@ -482,16 +609,21 @@ with right:
         "30°C+",
     ]
 
+
     temperature_colors = {
         "< 20°C":
             "#9DD9F3",
+
         "20–25°C":
             "#4EA8DE",
+
         "25–30°C":
             "#0F6CBD",
+
         "30°C+":
             "#083C6B",
     }
+
 
     temp_band_fig = px.bar(
         temperature,
@@ -524,10 +656,12 @@ with right:
         },
     )
 
+
     style_figure(
         temp_band_fig,
-        height=430,
+        height=445,
     )
+
 
     temp_band_fig.add_hline(
         y=0,
@@ -536,13 +670,21 @@ with right:
         line_width=1.25,
     )
 
+
     temp_band_fig.update_traces(
         marker_line_width=0,
     )
 
+
     temp_band_fig.update_layout(
         showlegend=False,
     )
+
+
+    temp_band_fig.update_xaxes(
+        title=None,
+    )
+
 
     st.plotly_chart(
         temp_band_fig,
@@ -551,21 +693,24 @@ with right:
 
 
 # ---------------------------------------------------------
-# WET HOURS
+# 03 · RAIN EVENTS
 # ---------------------------------------------------------
 
 section_header(
-    "Rain Events & Demand",
+    "Rain Events",
     (
-        "Focus specifically on wet hours to examine how "
-        "larger precipitation events coincide with "
-        "above- or below-expected ridership."
+        "Focus on wet hours to see how increasingly large "
+        "precipitation events coincide with above- or "
+        "below-expected ridership."
     ),
+    index="03 · RAIN EVENTS",
 )
+
 
 rain_events = data[
     data["precipitation_mm"] > 0
 ].copy()
+
 
 if rain_events.empty:
     st.info(
@@ -592,9 +737,18 @@ else:
                 ":,.0f",
         },
         color_continuous_scale=[
-            [0.00, "#9DD9F3"],
-            [0.50, "#4EA8DE"],
-            [1.00, "#0F6CBD"],
+            [
+                0.00,
+                "#9DD9F3",
+            ],
+            [
+                0.50,
+                "#4EA8DE",
+            ],
+            [
+                1.00,
+                "#0F6CBD",
+            ],
         ],
         labels={
             "precipitation_mm":
@@ -610,10 +764,12 @@ else:
         ),
     )
 
+
     style_figure(
         rain_fig,
-        height=470,
+        height=490,
     )
+
 
     rain_fig.add_hline(
         y=0,
@@ -622,6 +778,7 @@ else:
         line_width=1.5,
     )
 
+
     rain_fig.update_layout(
         coloraxis_colorbar={
             "title": "Temp °C",
@@ -629,82 +786,10 @@ else:
         },
     )
 
+
     st.plotly_chart(
         rain_fig,
         width="stretch",
-    )
-
-
-# ---------------------------------------------------------
-# INTERPRETATION CARDS
-# ---------------------------------------------------------
-
-section_header(
-    "Weather Interpretation",
-    (
-        "Key signals from the weather-adjusted "
-        "mobility analysis."
-    ),
-)
-
-wet_label = (
-    "lower"
-    if wet_difference < 0
-    else "higher"
-)
-
-rain_label = (
-    "negative"
-    if rain_corr < 0
-    else "positive"
-)
-
-temp_label = (
-    "positive"
-    if temp_corr > 0
-    else "negative"
-)
-
-insight1, insight2, insight3 = st.columns(
-    3,
-    gap="medium",
-)
-
-with insight1:
-    insight_card(
-        title="Wet-hour penalty",
-        icon="🌧️",
-        accent="#EF4444",
-        body=(
-            f"Wet hours average {abs(wet_difference):.1f} "
-            f"percentage points {wet_label} demand than "
-            "dry hours after adjusting for normal "
-            "weekday and hourly patterns."
-        ),
-    )
-
-with insight2:
-    insight_card(
-        title="Rain association",
-        icon="☔",
-        accent="#F59E0B",
-        body=(
-            f"Precipitation has a {rain_label} "
-            "association with adjusted demand "
-            f"(r = {rain_corr:+.2f})."
-        ),
-    )
-
-with insight3:
-    insight_card(
-        title="Temperature association",
-        icon="🌡️",
-        accent="#0F6CBD",
-        body=(
-            f"Temperature shows a {temp_label} "
-            "relationship with adjusted demand "
-            f"(r = {temp_corr:+.2f})."
-        ),
     )
 
 
@@ -716,8 +801,18 @@ note_card(
     title="Weather coverage note",
     body=(
         "Weather observations represent a single "
-        "New York City reference location. They "
-        "approximate city-level conditions rather "
-        "than station-specific microclimates."
+        "New York City reference location. They approximate "
+        "city-level conditions rather than station-specific "
+        "microclimates. Weather associations are descriptive "
+        "and should not be interpreted as causal effects."
     ),
+)
+
+
+# ---------------------------------------------------------
+# FOOTER
+# ---------------------------------------------------------
+
+page_footer(
+    period=refresh.period_label,
 )

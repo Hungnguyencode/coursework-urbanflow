@@ -3,9 +3,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 from components.charts import style_figure
-from components.health import (
-    render_sidebar_health,
-)
+from components.health import render_sidebar_health
 from components.refresh import (
     load_refresh_context,
     sync_refresh_cache,
@@ -13,6 +11,7 @@ from components.refresh import (
 from components.ui import (
     inject_global_css,
     insight_card,
+    page_footer,
     page_header,
     section_header,
     sidebar_data_status,
@@ -206,16 +205,16 @@ def load_weekday_total():
 
 
 # ---------------------------------------------------------
-# HEADER
+# HERO
 # ---------------------------------------------------------
 
 page_header(
     title="Temporal Patterns",
     icon="⏱️",
     subtitle=(
-        "Discover when Citi Bike demand occurs and how "
-        "mobility rhythms shift across hours, weekdays "
-        "and weekends."
+        "Read the rhythm of New York City mobility — "
+        "when demand rises, when it falls and how rider "
+        "behavior shifts between weekdays and weekends."
     ),
     period=refresh.period_label,
     last_refresh=refresh.last_refresh_label,
@@ -227,8 +226,11 @@ page_header(
 # ---------------------------------------------------------
 
 heatmap = load_hourly_heatmap()
+
 hourly = load_hourly_total()
+
 weekday = load_weekday_total()
+
 
 weekday_order = [
     "Monday",
@@ -257,13 +259,16 @@ peak_slot_row = heatmap.loc[
     heatmap["avg_rides"].idxmax()
 ]
 
+
 weekday_mean = weekday[
     weekday["weekday"] <= 5
 ]["avg_daily_rides"].mean()
 
+
 weekend_mean = weekday[
     weekday["weekday"] >= 6
 ]["avg_daily_rides"].mean()
+
 
 weekend_gap = (
     (
@@ -273,28 +278,39 @@ weekend_gap = (
     - 1
 ) * 100
 
+
+peak_day_short = (
+    peak_slot_row[
+        "weekday_name"
+    ][:3]
+)
+
+
 kpi1, kpi2, kpi3, kpi4 = st.columns(
     4,
     gap="medium",
 )
 
+
 with kpi1:
     st.metric(
         "Peak Hour",
-        f"{int(peak_hour_row['hour']):02d}:00",
+        (
+            f"{int(peak_hour_row['hour']):02d}:00"
+        ),
     )
+
 
 with kpi2:
     st.metric(
         "Busiest Day",
-        peak_day_row["weekday_name"],
+        peak_day_row[
+            "weekday_name"
+        ],
     )
+
 
 with kpi3:
-    peak_day_short = (
-        peak_slot_row["weekday_name"][:3]
-    )
-
     st.metric(
         "Strongest Time Slot",
         (
@@ -302,6 +318,7 @@ with kpi3:
             f"{int(peak_slot_row['hour']):02d}:00"
         ),
     )
+
 
 with kpi4:
     st.metric(
@@ -311,20 +328,24 @@ with kpi4:
 
 
 # ---------------------------------------------------------
-# HEATMAP
+# 01 · DEMAND RHYTHM
 # ---------------------------------------------------------
 
 section_header(
-    "Demand Rhythm Heatmap",
+    "Demand Rhythm",
     (
-        "Average rides for each weekday–hour combination. "
-        "Darker cells indicate stronger recurring demand."
+        "See how average Citi Bike activity changes across "
+        "the full weekday–hour cycle. Darker cells indicate "
+        "stronger recurring demand."
     ),
+    index="01 · DEMAND RHYTHM",
 )
+
 
 hours = list(
     range(24)
 )
+
 
 matrix = (
     heatmap
@@ -338,9 +359,11 @@ matrix = (
     )
 )
 
+
 matrix = matrix.reindex(
     columns=hours
 )
+
 
 heatmap_fig = go.Figure(
     data=go.Heatmap(
@@ -348,17 +371,35 @@ heatmap_fig = go.Figure(
         x=hours,
         y=weekday_order,
         colorscale=[
-            [0.00, "#F7FBFF"],
-            [0.20, "#E1EFFA"],
-            [0.40, "#A9D3EC"],
-            [0.60, "#5AA6D1"],
-            [0.80, "#0F6CBD"],
-            [1.00, "#083C6B"],
+            [
+                0.00,
+                "#F7FBFF",
+            ],
+            [
+                0.20,
+                "#E1EFFA",
+            ],
+            [
+                0.40,
+                "#A9D3EC",
+            ],
+            [
+                0.60,
+                "#5AA6D1",
+            ],
+            [
+                0.80,
+                "#0F6CBD",
+            ],
+            [
+                1.00,
+                "#083C6B",
+            ],
         ],
         colorbar={
             "title": "Avg rides",
             "thickness": 14,
-            "len": 0.75,
+            "len": 0.72,
         },
         hovertemplate=(
             "<b>%{y}</b><br>"
@@ -369,19 +410,21 @@ heatmap_fig = go.Figure(
     )
 )
 
+
 style_figure(
     heatmap_fig,
-    height=510,
+    height=520,
 )
+
 
 heatmap_fig.update_layout(
     title=(
-        "Average Ride Demand by "
-        "Weekday and Hour"
+        "Average Ride Demand by Weekday and Hour"
     ),
     xaxis_title="Hour of Day",
     yaxis_title=None,
 )
+
 
 heatmap_fig.update_xaxes(
     tickmode="array",
@@ -392,9 +435,11 @@ heatmap_fig.update_xaxes(
     ],
 )
 
+
 heatmap_fig.update_yaxes(
     autorange="reversed",
 )
+
 
 st.plotly_chart(
     heatmap_fig,
@@ -403,19 +448,24 @@ st.plotly_chart(
 
 
 # ---------------------------------------------------------
-# HOURLY + WEEKDAY
+# 02 · DAILY PROFILE
 # ---------------------------------------------------------
 
 section_header(
-    "Daily Demand Signature",
+    "Daily Profile",
     (
-        "Compare the typical hourly demand curve "
-        "with average ridership across days of the week."
+        "Compare the typical 24-hour demand curve with "
+        "average ride volume across each day of the week."
     ),
+    index="02 · DAILY PROFILE",
 )
 
-left, right = st.columns(
-    2,
+
+profile_left, profile_right = st.columns(
+    [
+        1.55,
+        1,
+    ],
     gap="large",
 )
 
@@ -424,15 +474,13 @@ left, right = st.columns(
 # HOURLY CURVE
 # ---------------------------------------------------------
 
-with left:
+with profile_left:
     hourly_fig = px.line(
         hourly,
         x="hour",
         y="avg_rides",
         markers=True,
-        title=(
-            "Average Ride Demand by Hour"
-        ),
+        title="Average Ride Demand by Hour",
         labels={
             "hour":
                 "Hour of Day",
@@ -441,10 +489,12 @@ with left:
         },
     )
 
+
     style_figure(
         hourly_fig,
-        height=430,
+        height=455,
     )
+
 
     hourly_fig.update_traces(
         line={
@@ -454,8 +504,18 @@ with left:
         marker={
             "size": 7,
             "color": "#0F6CBD",
+            "line": {
+                "width": 1,
+                "color": "#FFFFFF",
+            },
         },
+        hovertemplate=(
+            "<b>%{x}:00</b><br>"
+            "Average rides: %{y:,.0f}"
+            "<extra></extra>"
+        ),
     )
+
 
     hourly_fig.add_vrect(
         x0=7,
@@ -463,11 +523,10 @@ with left:
         fillcolor="#14B8A6",
         opacity=0.08,
         line_width=0,
-        annotation_text=(
-            "AM commute"
-        ),
+        annotation_text="AM commute",
         annotation_position="top left",
     )
+
 
     hourly_fig.add_vrect(
         x0=16,
@@ -475,11 +534,10 @@ with left:
         fillcolor="#F59E0B",
         opacity=0.08,
         line_width=0,
-        annotation_text=(
-            "PM commute"
-        ),
+        annotation_text="PM commute",
         annotation_position="top left",
     )
+
 
     hourly_fig.update_xaxes(
         tickmode="linear",
@@ -487,9 +545,11 @@ with left:
         dtick=2,
     )
 
+
     hourly_fig.update_layout(
         showlegend=False,
     )
+
 
     st.plotly_chart(
         hourly_fig,
@@ -501,7 +561,24 @@ with left:
 # WEEKDAY PROFILE
 # ---------------------------------------------------------
 
-with right:
+with profile_right:
+    weekday_colors = [
+        (
+            "#14B8A6"
+            if day
+            in {
+                "Saturday",
+                "Sunday",
+            }
+            else "#0F6CBD"
+        )
+        for day
+        in weekday[
+            "weekday_name"
+        ]
+    ]
+
+
     weekday_fig = px.bar(
         weekday,
         x="weekday_name",
@@ -522,37 +599,34 @@ with right:
         },
     )
 
+
     style_figure(
         weekday_fig,
-        height=430,
+        height=455,
     )
 
+
     weekday_fig.update_traces(
-        marker_color=[
-            (
-                "#0F6CBD"
-                if day
-                not in {
-                    "Saturday",
-                    "Sunday",
-                }
-                else "#14B8A6"
-            )
-            for day
-            in weekday[
-                "weekday_name"
-            ]
-        ],
+        marker_color=weekday_colors,
         marker_line_width=0,
+        hovertemplate=(
+            "<b>%{x}</b><br>"
+            "Average rides: %{y:,.0f}"
+            "<extra></extra>"
+        ),
     )
+
 
     weekday_fig.update_layout(
         showlegend=False,
     )
 
+
     weekday_fig.update_xaxes(
         tickangle=-25,
+        title=None,
     )
+
 
     st.plotly_chart(
         weekday_fig,
@@ -561,33 +635,37 @@ with right:
 
 
 # ---------------------------------------------------------
-# INTERPRETATION
+# 03 · RHYTHM INSIGHTS
 # ---------------------------------------------------------
 
 section_header(
-    "Temporal Interpretation",
+    "Rhythm Insights",
     (
-        "What the normalized demand patterns suggest "
-        "about typical Citi Bike usage."
+        "Key signals from the normalized temporal profile "
+        "and what they suggest about typical Citi Bike usage."
     ),
+    index="03 · RHYTHM INSIGHTS",
 )
+
 
 insight1, insight2, insight3 = st.columns(
     3,
     gap="medium",
 )
 
+
 with insight1:
     insight_card(
         title="Peak hourly demand",
-        icon="🕗",
+        icon="🕔",
         accent="#0F6CBD",
         body=(
             "The strongest average hourly demand occurs "
             f"around {int(peak_hour_row['hour']):02d}:00, "
-            "showing a pronounced daily travel peak."
+            "revealing a pronounced late-day travel peak."
         ),
     )
+
 
 with insight2:
     insight_card(
@@ -600,6 +678,7 @@ with insight2:
             "active dataset."
         ),
     )
+
 
 with insight3:
     insight_card(
@@ -614,3 +693,12 @@ with insight3:
             "profile shifts later into the day."
         ),
     )
+
+
+# ---------------------------------------------------------
+# FOOTER
+# ---------------------------------------------------------
+
+page_footer(
+    period=refresh.period_label,
+)

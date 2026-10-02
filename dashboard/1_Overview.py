@@ -3,9 +3,7 @@ import plotly.express as px
 import streamlit as st
 from components.charts import style_figure
 from components.filters import render_trip_filters
-from components.health import (
-    render_sidebar_health,
-)
+from components.health import render_sidebar_health
 from components.kpis import metric_row
 from components.refresh import (
     load_refresh_context,
@@ -15,6 +13,7 @@ from components.ui import (
     inject_global_css,
     insight_card,
     note_card,
+    page_footer,
     page_header,
     section_header,
     sidebar_data_status,
@@ -332,17 +331,16 @@ def format_ride_count(
 
 
 # ---------------------------------------------------------
-# HEADER
+# HERO
 # ---------------------------------------------------------
 
 page_header(
     title="UrbanFlow",
     icon="🚲",
     subtitle=(
-        "A mobility intelligence dashboard for exploring "
-        "ridership demand, rider behavior, station activity "
-        "and weather effects across New York City's "
-        "Citi Bike network."
+        "Explore how New York City moves — when riders travel, "
+        "where demand concentrates and how mobility patterns "
+        "change across the Citi Bike network."
     ),
     period=refresh.period_label,
     last_refresh=refresh.last_refresh_label,
@@ -359,17 +357,16 @@ filters = render_trip_filters(
 )
 
 st.caption(
-    "Active filters · "
-    f"{filters['rider_label']} · "
-    f"{filters['bike_label']} · "
-    f"{filters['start_date']:%b %d, %Y} "
-    "→ "
+    "CURRENT VIEW  ·  "
+    f"{filters['rider_label']}  ·  "
+    f"{filters['bike_label']}  ·  "
+    f"{filters['start_date']:%b %d} → "
     f"{filters['end_date']:%b %d, %Y}"
 )
 
 
 # ---------------------------------------------------------
-# KPI SUMMARY
+# KPI PULSE
 # ---------------------------------------------------------
 
 summary = load_summary(
@@ -378,6 +375,7 @@ summary = load_summary(
     filters["rider_type"],
     filters["bike_type"],
 ).iloc[0]
+
 
 total_rides = int(
     summary["total_rides"]
@@ -397,6 +395,7 @@ electric_share = float(
     summary["electric_share"]
     or 0
 )
+
 
 metric_row(
     [
@@ -423,16 +422,18 @@ metric_row(
 
 
 # ---------------------------------------------------------
-# MAIN STORY
+# 01 · MOBILITY SNAPSHOT
 # ---------------------------------------------------------
 
 section_header(
     "Mobility Snapshot",
     (
-        "Daily demand trend and rider composition "
-        "for the current filter selection."
+        "Daily ride demand and rider composition "
+        "for the active filter selection."
     ),
+    index="01 · MOBILITY SNAPSHOT",
 )
+
 
 daily = load_daily_metrics(
     filters["start_date"],
@@ -441,23 +442,22 @@ daily = load_daily_metrics(
     filters["bike_type"],
 )
 
-member_data = (
-    load_member_breakdown(
-        filters["start_date"],
-        filters["end_date"],
-        filters["rider_type"],
-        filters["bike_type"],
-    )
+member_data = load_member_breakdown(
+    filters["start_date"],
+    filters["end_date"],
+    filters["rider_type"],
+    filters["bike_type"],
 )
 
+
 main_left, main_right = st.columns(
-    [2.1, 1],
+    [2.35, 1],
     gap="large",
 )
 
 
 # ---------------------------------------------------------
-# DAILY TREND
+# DAILY VOLUME
 # ---------------------------------------------------------
 
 with main_left:
@@ -467,19 +467,15 @@ with main_left:
         y="rides",
         markers=True,
         labels={
-            "date":
-                "Date",
-            "rides":
-                "Rides",
+            "date": "Date",
+            "rides": "Rides",
         },
-        title=(
-            "Daily Ride Volume"
-        ),
+        title="Daily Ride Volume",
     )
 
     style_figure(
         daily_fig,
-        height=430,
+        height=440,
     )
 
     daily_fig.update_traces(
@@ -493,6 +489,11 @@ with main_left:
         },
         fillcolor=(
             "rgba(15,108,189,0.10)"
+        ),
+        hovertemplate=(
+            "<b>%{x|%b %d}</b><br>"
+            "Rides: %{y:,}"
+            "<extra></extra>"
         ),
     )
 
@@ -525,7 +526,7 @@ with main_right:
         member_data,
         values="rides",
         names="member_casual",
-        hole=0.64,
+        hole=0.66,
         color="member_casual",
         color_discrete_map=(
             rider_colors
@@ -560,30 +561,26 @@ with main_right:
         showarrow=False,
         font={
             "size": 20,
-            "color": "#0B1F33",
+            "color": "#081D33",
         },
     )
 
     member_fig.update_layout(
         template="plotly_white",
-        height=430,
+        height=440,
         margin={
-            "l": 20,
-            "r": 20,
+            "l": 18,
+            "r": 18,
             "t": 65,
-            "b": 20,
+            "b": 18,
         },
-        paper_bgcolor=(
-            "rgba(0,0,0,0)"
-        ),
-        plot_bgcolor=(
-            "rgba(0,0,0,0)"
-        ),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
         title={
             "font": {
                 "size": 18,
-                "color": "#0B1F33",
+                "color": "#081D33",
             },
             "x": 0.03,
         },
@@ -596,16 +593,18 @@ with main_right:
 
 
 # ---------------------------------------------------------
-# STATIONS + FINDINGS
+# 02 · NETWORK SIGNALS
 # ---------------------------------------------------------
 
 section_header(
-    "Network Activity & Findings",
+    "Network Signals",
     (
-        "Identify high-demand departure locations "
-        "and the strongest behavioral signals."
+        "High-demand departure locations and the strongest "
+        "behavioral patterns visible in the active dataset."
     ),
+    index="02 · NETWORK SIGNALS",
 )
+
 
 stations = load_top_stations(
     filters["start_date"],
@@ -614,8 +613,9 @@ stations = load_top_stations(
     filters["bike_type"],
 )
 
-bottom_left, bottom_right = st.columns(
-    [2.1, 1],
+
+network_left, network_right = st.columns(
+    [2.35, 1],
     gap="large",
 )
 
@@ -624,7 +624,7 @@ bottom_left, bottom_right = st.columns(
 # TOP STATIONS
 # ---------------------------------------------------------
 
-with bottom_left:
+with network_left:
     station_fig = px.bar(
         stations.sort_values(
             "departures",
@@ -633,25 +633,26 @@ with bottom_left:
         x="departures",
         y="station_name",
         orientation="h",
-        title=(
-            "Top 10 Departure Stations"
-        ),
+        title="Top 10 Departure Stations",
         labels={
-            "departures":
-                "Departures",
-            "station_name":
-                "Station",
+            "departures": "Departures",
+            "station_name": "Station",
         },
     )
 
     style_figure(
         station_fig,
-        height=470,
+        height=485,
     )
 
     station_fig.update_traces(
         marker_color="#0F6CBD",
         marker_line_width=0,
+        hovertemplate=(
+            "<b>%{y}</b><br>"
+            "Departures: %{x:,}"
+            "<extra></extra>"
+        ),
     )
 
     station_fig.update_layout(
@@ -666,31 +667,35 @@ with bottom_left:
 
 
 # ---------------------------------------------------------
-# FINDINGS COLUMN
+# FINDINGS
 # ---------------------------------------------------------
 
-with bottom_right:
+with network_right:
+    st.caption(
+        "KEY FINDINGS"
+    )
+
     insight_card(
         title="Commuter-oriented demand",
         icon="🚇",
         accent="#0F6CBD",
         body=(
-            "Weekday ridership shows distinct "
-            "morning and evening peaks, especially "
-            "around 08:00 and 17:00–18:00."
+            "Weekday ridership shows clear morning and "
+            "evening peaks, especially near 08:00 and "
+            "17:00–18:00."
         ),
     )
 
     st.write("")
 
     insight_card(
-        title="Weekend behavior differs",
+        title="Weekend behavior shifts",
         icon="🌤️",
         accent="#14B8A6",
         body=(
-            "Weekend demand shifts toward midday "
-            "and afternoon rather than following "
-            "the same commuter peak structure."
+            "Weekend demand moves toward midday and "
+            "afternoon instead of following the weekday "
+            "commuter profile."
         ),
     )
 
@@ -701,24 +706,26 @@ with bottom_right:
         icon="🌧️",
         accent="#EF4444",
         body=(
-            "After adjusting for weekday and hour, "
-            "wetter conditions are associated with "
-            "below-expected ride demand."
+            "After adjusting for weekday and hour, wetter "
+            "conditions are associated with below-expected "
+            "ride demand."
         ),
     )
 
 
 # ---------------------------------------------------------
-# EXPORT
+# 03 · EXPORT
 # ---------------------------------------------------------
 
 section_header(
-    "Filtered Data",
+    "Export & Reproducibility",
     (
-        "Export the currently displayed daily demand "
-        "summary for additional analysis."
+        "Take the filtered daily summary with you or review "
+        "how the dashboard is produced."
     ),
+    index="03 · EXPORT & REPRODUCIBILITY",
 )
+
 
 csv_data = daily.to_csv(
     index=False
@@ -726,9 +733,12 @@ csv_data = daily.to_csv(
     "utf-8"
 )
 
+
 export_left, export_right = st.columns(
-    [1, 3],
+    [1, 2.8],
+    gap="large",
 )
+
 
 with export_left:
     st.download_button(
@@ -739,16 +749,26 @@ with export_left:
             f"{refresh.period.file_suffix}.csv"
         ),
         mime="text/csv",
-        use_container_width=True,
+        width="stretch",
     )
+
 
 with export_right:
     note_card(
         title="Reproducible analytics pipeline",
         body=(
             "UrbanFlow transforms Citi Bike mobility and "
-            "Open-Meteo weather data through Python, "
-            "Polars, Parquet and DuckDB before rendering "
-            "the interactive Streamlit dashboard."
+            "Open-Meteo weather data through Python, Polars, "
+            "Parquet and DuckDB before rendering the "
+            "interactive Streamlit dashboard."
         ),
     )
+
+
+# ---------------------------------------------------------
+# FOOTER
+# ---------------------------------------------------------
+
+page_footer(
+    period=refresh.period_label,
+)
