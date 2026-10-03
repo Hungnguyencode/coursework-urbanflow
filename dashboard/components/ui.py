@@ -81,19 +81,20 @@ GLOBAL_CSS = """
 
 
 [data-testid="stSidebar"] > div {
-    padding-top: 1rem;
+    padding-top: 0.25rem;
 }
 
 
 [data-testid="stSidebarNav"] {
-    padding-top: 0.25rem;
+    padding-top: 0 !important;
     padding-bottom: 0.8rem;
+    margin-top: -1.6rem;
 }
 
 
 [data-testid="stSidebarNav"] a {
     border-radius: 10px;
-    margin: 0.12rem 0.35rem;
+    margin: 0.06rem 0.35rem;
     padding-top: 0.43rem;
     padding-bottom: 0.43rem;
     transition:
