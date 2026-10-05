@@ -17,6 +17,7 @@ from components.ui import (
     page_header,
     section_header,
     sidebar_data_status,
+    view_context,
 )
 
 from urbanflow.config import DATABASE_PATH
@@ -33,7 +34,6 @@ st.set_page_config(
 
 inject_global_css()
 
-
 # ---------------------------------------------------------
 # REFRESH CONTEXT
 # ---------------------------------------------------------
@@ -47,7 +47,6 @@ sync_refresh_cache(
 ANALYSIS_START = refresh.start_date
 ANALYSIS_END = refresh.end_date
 
-
 sidebar_data_status(
     period=refresh.period_label,
     last_refresh=refresh.last_refresh_label,
@@ -59,7 +58,6 @@ render_sidebar_health(
     ),
 )
 
-
 # ---------------------------------------------------------
 # DATABASE
 # ---------------------------------------------------------
@@ -70,7 +68,6 @@ def get_connection():
         str(DATABASE_PATH),
         read_only=True,
     )
-
 
 # ---------------------------------------------------------
 # FILTER HELPERS
@@ -120,7 +117,6 @@ def build_trip_filter(
         where_clause,
         parameters,
     )
-
 
 # ---------------------------------------------------------
 # DATA LOADERS
@@ -181,7 +177,6 @@ def load_summary(
         params,
     ).fetchdf()
 
-
 @st.cache_data
 def load_daily_metrics(
     start_date,
@@ -221,7 +216,6 @@ def load_daily_metrics(
         params,
     ).fetchdf()
 
-
 @st.cache_data
 def load_member_breakdown(
     start_date,
@@ -260,7 +254,6 @@ def load_member_breakdown(
         query,
         params,
     ).fetchdf()
-
 
 @st.cache_data
 def load_top_stations(
@@ -309,7 +302,6 @@ def load_top_stations(
         params,
     ).fetchdf()
 
-
 # ---------------------------------------------------------
 # FORMAT HELPERS
 # ---------------------------------------------------------
@@ -329,7 +321,6 @@ def format_ride_count(
 
     return f"{value:,}"
 
-
 # ---------------------------------------------------------
 # HERO
 # ---------------------------------------------------------
@@ -346,7 +337,6 @@ page_header(
     last_refresh=refresh.last_refresh_label,
 )
 
-
 # ---------------------------------------------------------
 # FILTERS
 # ---------------------------------------------------------
@@ -356,14 +346,12 @@ filters = render_trip_filters(
     max_date=ANALYSIS_END,
 )
 
-st.caption(
-    "CURRENT VIEW  ·  "
-    f"{filters['rider_label']}  ·  "
-    f"{filters['bike_label']}  ·  "
+view_context(
+    f"{filters['rider_label']} · "
+    f"{filters['bike_label']} · "
     f"{filters['start_date']:%b %d} → "
     f"{filters['end_date']:%b %d, %Y}"
 )
-
 
 # ---------------------------------------------------------
 # KPI PULSE
@@ -375,7 +363,6 @@ summary = load_summary(
     filters["rider_type"],
     filters["bike_type"],
 ).iloc[0]
-
 
 total_rides = int(
     summary["total_rides"]
@@ -395,7 +382,6 @@ electric_share = float(
     summary["electric_share"]
     or 0
 )
-
 
 metric_row(
     [
@@ -420,7 +406,6 @@ metric_row(
     ]
 )
 
-
 # ---------------------------------------------------------
 # 01 · MOBILITY SNAPSHOT
 # ---------------------------------------------------------
@@ -433,7 +418,6 @@ section_header(
     ),
     index="01 · MOBILITY SNAPSHOT",
 )
-
 
 daily = load_daily_metrics(
     filters["start_date"],
@@ -449,12 +433,10 @@ member_data = load_member_breakdown(
     filters["bike_type"],
 )
 
-
 main_left, main_right = st.columns(
     [2.35, 1],
     gap="large",
 )
-
 
 # ---------------------------------------------------------
 # DAILY VOLUME
@@ -481,11 +463,11 @@ with main_left:
     daily_fig.update_traces(
         line={
             "width": 3,
-            "color": "#0F6CBD",
+            "color": "#0B6BFF",
         },
         marker={
             "size": 6,
-            "color": "#0F6CBD",
+            "color": "#0B6BFF",
         },
         fillcolor=(
             "rgba(15,108,189,0.10)"
@@ -511,15 +493,14 @@ with main_left:
         width="stretch",
     )
 
-
 # ---------------------------------------------------------
 # RIDER MIX
 # ---------------------------------------------------------
 
 with main_right:
     rider_colors = {
-        "member": "#0F6CBD",
-        "casual": "#14B8A6",
+        "member": "#0B6BFF",
+        "casual": "#13C8A3",
     }
 
     member_fig = px.pie(
@@ -561,7 +542,7 @@ with main_right:
         showarrow=False,
         font={
             "size": 20,
-            "color": "#081D33",
+            "color": "#0B1F3A",
         },
     )
 
@@ -580,7 +561,7 @@ with main_right:
         title={
             "font": {
                 "size": 18,
-                "color": "#081D33",
+                "color": "#0B1F3A",
             },
             "x": 0.03,
         },
@@ -590,7 +571,6 @@ with main_right:
         member_fig,
         width="stretch",
     )
-
 
 # ---------------------------------------------------------
 # 02 · NETWORK SIGNALS
@@ -605,7 +585,6 @@ section_header(
     index="02 · NETWORK SIGNALS",
 )
 
-
 stations = load_top_stations(
     filters["start_date"],
     filters["end_date"],
@@ -613,12 +592,10 @@ stations = load_top_stations(
     filters["bike_type"],
 )
 
-
 network_left, network_right = st.columns(
     [2.35, 1],
     gap="large",
 )
-
 
 # ---------------------------------------------------------
 # TOP STATIONS
@@ -646,7 +623,7 @@ with network_left:
     )
 
     station_fig.update_traces(
-        marker_color="#0F6CBD",
+        marker_color="#0B6BFF",
         marker_line_width=0,
         hovertemplate=(
             "<b>%{y}</b><br>"
@@ -665,7 +642,6 @@ with network_left:
         width="stretch",
     )
 
-
 # ---------------------------------------------------------
 # FINDINGS
 # ---------------------------------------------------------
@@ -678,7 +654,7 @@ with network_right:
     insight_card(
         title="Commuter-oriented demand",
         icon="🚇",
-        accent="#0F6CBD",
+        accent="#0B6BFF",
         body=(
             "Weekday ridership shows clear morning and "
             "evening peaks, especially near 08:00 and "
@@ -691,7 +667,7 @@ with network_right:
     insight_card(
         title="Weekend behavior shifts",
         icon="🌤️",
-        accent="#14B8A6",
+        accent="#13C8A3",
         body=(
             "Weekend demand moves toward midday and "
             "afternoon instead of following the weekday "
@@ -704,14 +680,13 @@ with network_right:
     insight_card(
         title="Rain suppresses demand",
         icon="🌧️",
-        accent="#EF4444",
+        accent="#FF5D6C",
         body=(
             "After adjusting for weekday and hour, wetter "
             "conditions are associated with below-expected "
             "ride demand."
         ),
     )
-
 
 # ---------------------------------------------------------
 # 03 · EXPORT
@@ -726,19 +701,16 @@ section_header(
     index="03 · EXPORT & REPRODUCIBILITY",
 )
 
-
 csv_data = daily.to_csv(
     index=False
 ).encode(
     "utf-8"
 )
 
-
 export_left, export_right = st.columns(
     [1, 2.8],
     gap="large",
 )
-
 
 with export_left:
     st.download_button(
@@ -752,7 +724,6 @@ with export_left:
         width="stretch",
     )
 
-
 with export_right:
     note_card(
         title="Reproducible analytics pipeline",
@@ -763,7 +734,6 @@ with export_right:
             "interactive Streamlit dashboard."
         ),
     )
-
 
 # ---------------------------------------------------------
 # FOOTER

@@ -3,6 +3,7 @@ import plotly.express as px
 import streamlit as st
 from components.charts import style_figure
 from components.health import render_sidebar_health
+from components.kpis import metric_row
 from components.refresh import (
     load_refresh_context,
     sync_refresh_cache,
@@ -31,7 +32,6 @@ st.set_page_config(
 
 inject_global_css()
 
-
 # ---------------------------------------------------------
 # REFRESH CONTEXT
 # ---------------------------------------------------------
@@ -53,7 +53,6 @@ render_sidebar_health(
     ),
 )
 
-
 # ---------------------------------------------------------
 # DATABASE
 # ---------------------------------------------------------
@@ -64,7 +63,6 @@ def get_connection():
         str(DATABASE_PATH),
         read_only=True,
     )
-
 
 # ---------------------------------------------------------
 # DATA LOADERS
@@ -85,7 +83,6 @@ def load_weather_hourly():
             hour;
         """
     ).fetchdf()
-
 
 @st.cache_data
 def load_weather_summary():
@@ -128,7 +125,6 @@ def load_weather_summary():
         """
     ).fetchdf()
 
-
 @st.cache_data
 def load_precipitation_summary():
     conn = get_connection()
@@ -155,7 +151,6 @@ def load_precipitation_summary():
             precipitation_category;
         """
     ).fetchdf()
-
 
 @st.cache_data
 def load_temperature_bins():
@@ -191,7 +186,6 @@ def load_temperature_bins():
         """
     ).fetchdf()
 
-
 # ---------------------------------------------------------
 # HERO
 # ---------------------------------------------------------
@@ -208,7 +202,6 @@ page_header(
     last_refresh=refresh.last_refresh_label,
 )
 
-
 # ---------------------------------------------------------
 # LOAD DATA
 # ---------------------------------------------------------
@@ -223,7 +216,6 @@ summary = (
 precip = load_precipitation_summary()
 
 temperature = load_temperature_bins()
-
 
 # ---------------------------------------------------------
 # KPI SUMMARY
@@ -250,46 +242,31 @@ wet_difference = (
     - dry_avg
 )
 
-
-kpi1, kpi2, kpi3, kpi4 = st.columns(
-    4,
-    gap="medium",
+metric_row(
+    [
+        (
+            "Temp Association",
+            f"{temp_corr:+.2f}",
+        ),
+        (
+            "Rain Association",
+            f"{rain_corr:+.2f}",
+        ),
+        (
+            "Dry Hours vs Expected",
+            f"{dry_avg:+.1f}%",
+        ),
+        (
+            "Wet vs Dry",
+            f"{wet_difference:+.1f} pp",
+        ),
+    ]
 )
-
-
-with kpi1:
-    st.metric(
-        "Temp Association",
-        f"{temp_corr:+.2f}",
-    )
-
-
-with kpi2:
-    st.metric(
-        "Rain Association",
-        f"{rain_corr:+.2f}",
-    )
-
-
-with kpi3:
-    st.metric(
-        "Dry Hours vs Expected",
-        f"{dry_avg:+.1f}%",
-    )
-
-
-with kpi4:
-    st.metric(
-        "Wet vs Dry",
-        f"{wet_difference:+.1f} pp",
-    )
-
 
 st.caption(
     "DESCRIPTIVE ANALYSIS  ·  Associations shown here "
     "should not be interpreted as causal effects."
 )
-
 
 # ---------------------------------------------------------
 # LABEL HELPERS
@@ -313,7 +290,6 @@ temp_label = (
     else "negative"
 )
 
-
 # ---------------------------------------------------------
 # 01 · WEATHER SIGNAL
 # ---------------------------------------------------------
@@ -328,7 +304,6 @@ section_header(
     index="01 · WEATHER SIGNAL",
 )
 
-
 signal_left, signal_right = st.columns(
     [
         2.2,
@@ -336,7 +311,6 @@ signal_left, signal_right = st.columns(
     ],
     gap="large",
 )
-
 
 # ---------------------------------------------------------
 # TEMPERATURE SCATTER
@@ -393,12 +367,10 @@ with signal_left:
         ),
     )
 
-
     style_figure(
         temp_fig,
         height=540,
     )
-
 
     temp_fig.add_hline(
         y=0,
@@ -406,7 +378,6 @@ with signal_left:
         line_color="#64748B",
         line_width=1.5,
     )
-
 
     temp_fig.update_traces(
         marker={
@@ -417,7 +388,6 @@ with signal_left:
         },
     )
 
-
     temp_fig.update_layout(
         coloraxis_colorbar={
             "title": "Rain (mm)",
@@ -425,12 +395,10 @@ with signal_left:
         },
     )
 
-
     st.plotly_chart(
         temp_fig,
         width="stretch",
     )
-
 
 # ---------------------------------------------------------
 # WEATHER STORY
@@ -441,11 +409,10 @@ with signal_right:
         "WEATHER STORY"
     )
 
-
     insight_card(
         title="Wet-hour penalty",
         icon="🌧️",
-        accent="#EF4444",
+        accent="#FF5D6C",
         body=(
             f"Wet hours average {abs(wet_difference):.1f} "
             f"percentage points {wet_label} demand than "
@@ -454,14 +421,12 @@ with signal_right:
         ),
     )
 
-
     st.write("")
-
 
     insight_card(
         title="Rain association",
         icon="☔",
-        accent="#F59E0B",
+        accent="#FF9F1C",
         body=(
             f"Precipitation has a {rain_label} association "
             "with adjusted demand "
@@ -469,21 +434,18 @@ with signal_right:
         ),
     )
 
-
     st.write("")
-
 
     insight_card(
         title="Temperature association",
         icon="🌡️",
-        accent="#0F6CBD",
+        accent="#0B6BFF",
         body=(
             f"Temperature shows a {temp_label} relationship "
             "with adjusted demand "
             f"(r = {temp_corr:+.2f})."
         ),
     )
-
 
 # ---------------------------------------------------------
 # 02 · CONDITION CONTRAST
@@ -498,12 +460,10 @@ section_header(
     index="02 · CONDITION CONTRAST",
 )
 
-
 left, right = st.columns(
     2,
     gap="large",
 )
-
 
 # ---------------------------------------------------------
 # PRECIPITATION CATEGORIES
@@ -516,18 +476,16 @@ with left:
         "Moderate / heavy precipitation",
     ]
 
-
     precip_colors = {
         "No precipitation":
-            "#14B8A6",
+            "#13C8A3",
 
         "Light precipitation":
-            "#F59E0B",
+            "#FF9F1C",
 
         "Moderate / heavy precipitation":
-            "#EF4444",
+            "#FF5D6C",
     }
-
 
     precip_fig = px.bar(
         precip,
@@ -560,12 +518,10 @@ with left:
         },
     )
 
-
     style_figure(
         precip_fig,
         height=445,
     )
-
 
     precip_fig.add_hline(
         y=0,
@@ -574,28 +530,23 @@ with left:
         line_width=1.25,
     )
 
-
     precip_fig.update_traces(
         marker_line_width=0,
     )
 
-
     precip_fig.update_layout(
         showlegend=False,
     )
-
 
     precip_fig.update_xaxes(
         tickangle=-12,
         title=None,
     )
 
-
     st.plotly_chart(
         precip_fig,
         width="stretch",
     )
-
 
 # ---------------------------------------------------------
 # TEMPERATURE BANDS
@@ -609,7 +560,6 @@ with right:
         "30°C+",
     ]
 
-
     temperature_colors = {
         "< 20°C":
             "#9DD9F3",
@@ -618,12 +568,11 @@ with right:
             "#4EA8DE",
 
         "25–30°C":
-            "#0F6CBD",
+            "#0B6BFF",
 
         "30°C+":
             "#083C6B",
     }
-
 
     temp_band_fig = px.bar(
         temperature,
@@ -656,12 +605,10 @@ with right:
         },
     )
 
-
     style_figure(
         temp_band_fig,
         height=445,
     )
-
 
     temp_band_fig.add_hline(
         y=0,
@@ -670,27 +617,22 @@ with right:
         line_width=1.25,
     )
 
-
     temp_band_fig.update_traces(
         marker_line_width=0,
     )
-
 
     temp_band_fig.update_layout(
         showlegend=False,
     )
 
-
     temp_band_fig.update_xaxes(
         title=None,
     )
-
 
     st.plotly_chart(
         temp_band_fig,
         width="stretch",
     )
-
 
 # ---------------------------------------------------------
 # 03 · RAIN EVENTS
@@ -706,11 +648,9 @@ section_header(
     index="03 · RAIN EVENTS",
 )
 
-
 rain_events = data[
     data["precipitation_mm"] > 0
 ].copy()
-
 
 if rain_events.empty:
     st.info(
@@ -747,7 +687,7 @@ else:
             ],
             [
                 1.00,
-                "#0F6CBD",
+                "#0B6BFF",
             ],
         ],
         labels={
@@ -764,12 +704,10 @@ else:
         ),
     )
 
-
     style_figure(
         rain_fig,
         height=490,
     )
-
 
     rain_fig.add_hline(
         y=0,
@@ -778,7 +716,6 @@ else:
         line_width=1.5,
     )
 
-
     rain_fig.update_layout(
         coloraxis_colorbar={
             "title": "Temp °C",
@@ -786,12 +723,10 @@ else:
         },
     )
 
-
     st.plotly_chart(
         rain_fig,
         width="stretch",
     )
-
 
 # ---------------------------------------------------------
 # DATA CAVEAT
@@ -807,7 +742,6 @@ note_card(
         "and should not be interpreted as causal effects."
     ),
 )
-
 
 # ---------------------------------------------------------
 # FOOTER

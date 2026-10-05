@@ -4,6 +4,7 @@ import pydeck as pdk
 import streamlit as st
 from components.charts import style_figure
 from components.health import render_sidebar_health
+from components.kpis import metric_row
 from components.refresh import (
     load_refresh_context,
     sync_refresh_cache,
@@ -15,6 +16,8 @@ from components.ui import (
     page_header,
     section_header,
     sidebar_data_status,
+    sidebar_filter_heading,
+    sidebar_filter_summary,
 )
 
 from urbanflow.config import DATABASE_PATH
@@ -30,7 +33,6 @@ st.set_page_config(
 )
 
 inject_global_css()
-
 
 # ---------------------------------------------------------
 # REFRESH CONTEXT
@@ -53,7 +55,6 @@ render_sidebar_health(
     ),
 )
 
-
 # ---------------------------------------------------------
 # DATABASE
 # ---------------------------------------------------------
@@ -64,7 +65,6 @@ def get_connection():
         str(DATABASE_PATH),
         read_only=True,
     )
-
 
 # ---------------------------------------------------------
 # DATA LOADERS
@@ -99,7 +99,6 @@ def load_station_metrics():
         """
     ).fetchdf()
 
-
 @st.cache_data
 def load_top_routes(
     limit: int,
@@ -127,7 +126,6 @@ def load_top_routes(
         [limit],
     ).fetchdf()
 
-
 # ---------------------------------------------------------
 # HERO
 # ---------------------------------------------------------
@@ -144,24 +142,24 @@ page_header(
     last_refresh=refresh.last_refresh_label,
 )
 
-
 # ---------------------------------------------------------
 # DATA
 # ---------------------------------------------------------
 
 stations = load_station_metrics()
 
-
 # ---------------------------------------------------------
 # SIDEBAR FILTERS
 # ---------------------------------------------------------
 
-st.sidebar.header(
-    "Flow Filters"
+sidebar_filter_heading(
+    "Flow Filters",
+    "Tune station activity, rankings and map scope",
+    icon="⌁",
 )
 
 min_activity = st.sidebar.slider(
-    "Minimum station activity",
+    "◉  Minimum station activity",
     min_value=100,
     max_value=10_000,
     value=5_000,
@@ -169,7 +167,7 @@ min_activity = st.sidebar.slider(
 )
 
 top_n = st.sidebar.slider(
-    "Stations shown in rankings",
+    "▥  Stations shown in rankings",
     min_value=5,
     max_value=25,
     value=10,
@@ -177,14 +175,14 @@ top_n = st.sidebar.slider(
 )
 
 route_limit = st.sidebar.slider(
-    "OD routes shown",
+    "↔  OD routes shown",
     min_value=5,
     max_value=20,
     value=10,
 )
 
 flow_view = st.sidebar.selectbox(
-    "Map view",
+    "⌖  Map view",
     [
         "All stations",
         "Net outflow only",
@@ -193,12 +191,15 @@ flow_view = st.sidebar.selectbox(
     ],
 )
 
+sidebar_filter_summary(
+    f"Activity ≥ {min_activity:,} · Top {top_n} stations · "
+    f"{route_limit} OD routes · {flow_view}"
+)
 
 filtered = stations[
     stations["total_activity"]
     >= min_activity
 ].copy()
-
 
 # ---------------------------------------------------------
 # EMPTY STATE
@@ -211,7 +212,6 @@ if filtered.empty:
     )
 
     st.stop()
-
 
 # ---------------------------------------------------------
 # KPI SUMMARY
@@ -235,48 +235,28 @@ median_imbalance = (
     * 100
 )
 
-
-kpi1, kpi2, kpi3, kpi4 = st.columns(
-    4,
-    gap="medium",
+metric_row(
+    [
+        (
+            "Stations Analyzed",
+            f"{station_count:,}",
+        ),
+        (
+            "Median Imbalance",
+            f"{median_imbalance:.1f}%",
+        ),
+        (
+            "Largest Net Outflow",
+            f"{int(largest_loss['net_flow']):,}",
+            str(largest_loss["station_name"]),
+        ),
+        (
+            "Largest Net Inflow",
+            f"+{int(largest_gain['net_flow']):,}",
+            str(largest_gain["station_name"]),
+        ),
+    ]
 )
-
-
-with kpi1:
-    st.metric(
-        "Stations Analyzed",
-        f"{station_count:,}",
-    )
-
-
-with kpi2:
-    st.metric(
-        "Median Imbalance",
-        f"{median_imbalance:.1f}%",
-    )
-
-
-with kpi3:
-    st.metric(
-        "Largest Net Outflow",
-        f"{int(largest_loss['net_flow']):,}",
-    )
-
-    st.caption(
-        largest_loss["station_name"]
-    )
-
-
-with kpi4:
-    st.metric(
-        "Largest Net Inflow",
-        f"+{int(largest_gain['net_flow']):,}",
-    )
-
-    st.caption(
-        largest_gain["station_name"]
-    )
-
 
 # ---------------------------------------------------------
 # 01 · STATION FLOW
@@ -292,9 +272,7 @@ section_header(
     index="01 · STATION FLOW",
 )
 
-
 map_data = filtered.copy()
-
 
 if flow_view == "Net outflow only":
     map_data = map_data[
@@ -311,7 +289,6 @@ elif flow_view == "High imbalance only":
         map_data["imbalance_ratio"]
         >= 0.05
     ].copy()
-
 
 if map_data.empty:
     st.info(
@@ -346,7 +323,6 @@ else:
             155,
         ]
 
-
     map_data["color"] = (
         map_data["net_flow"]
         .apply(
@@ -371,7 +347,6 @@ else:
         ]
         * 100
     )
-
 
     layer = pdk.Layer(
         "ScatterplotLayer",
@@ -398,7 +373,6 @@ else:
         line_width_min_pixels=1,
     )
 
-
     view_state = pdk.ViewState(
         latitude=float(
             map_data[
@@ -414,7 +388,6 @@ else:
         pitch=0,
     )
 
-
     tooltip = {
         "html": (
             "<b>{station_name}</b><br/>"
@@ -425,11 +398,10 @@ else:
             "Imbalance: {imbalance_pct}%"
         ),
         "style": {
-            "backgroundColor": "#081D33",
+            "backgroundColor": "#0B1F3A",
             "color": "white",
         },
     }
-
 
     deck = pdk.Deck(
         layers=[
@@ -442,12 +414,10 @@ else:
         map_style=None,
     )
 
-
     st.pydeck_chart(
         deck,
         width="stretch",
     )
-
 
 # ---------------------------------------------------------
 # 02 · FLOW EXTREMES
@@ -462,12 +432,10 @@ section_header(
     index="02 · FLOW EXTREMES",
 )
 
-
 left, right = st.columns(
     2,
     gap="large",
 )
-
 
 # ---------------------------------------------------------
 # OUTFLOW
@@ -486,7 +454,6 @@ with left:
         )
     )
 
-
     loss_fig = px.bar(
         losses,
         x="net_flow",
@@ -499,15 +466,13 @@ with left:
         },
     )
 
-
     style_figure(
         loss_fig,
         height=430,
     )
 
-
     loss_fig.update_traces(
-        marker_color="#EF4444",
+        marker_color="#FF5D6C",
         marker_line_width=0,
         hovertemplate=(
             "<b>%{y}</b><br>"
@@ -516,18 +481,15 @@ with left:
         ),
     )
 
-
     loss_fig.update_layout(
         yaxis_title=None,
         showlegend=False,
     )
 
-
     st.plotly_chart(
         loss_fig,
         width="stretch",
     )
-
 
 # ---------------------------------------------------------
 # INFLOW
@@ -546,7 +508,6 @@ with right:
         )
     )
 
-
     gain_fig = px.bar(
         gains,
         x="net_flow",
@@ -559,15 +520,13 @@ with right:
         },
     )
 
-
     style_figure(
         gain_fig,
         height=430,
     )
 
-
     gain_fig.update_traces(
-        marker_color="#0F6CBD",
+        marker_color="#0B6BFF",
         marker_line_width=0,
         hovertemplate=(
             "<b>%{y}</b><br>"
@@ -576,18 +535,15 @@ with right:
         ),
     )
 
-
     gain_fig.update_layout(
         yaxis_title=None,
         showlegend=False,
     )
 
-
     st.plotly_chart(
         gain_fig,
         width="stretch",
     )
-
 
 # ---------------------------------------------------------
 # 03 · NETWORK PRESSURE
@@ -603,12 +559,10 @@ section_header(
     index="03 · NETWORK PRESSURE",
 )
 
-
 pressure_left, pressure_right = st.columns(
     [1, 1.35],
     gap="large",
 )
-
 
 # ---------------------------------------------------------
 # IMBALANCE
@@ -635,7 +589,6 @@ with pressure_left:
         )
     )
 
-
     imbalance_fig = px.bar(
         imbalance,
         x="imbalance_pct",
@@ -650,15 +603,13 @@ with pressure_left:
         },
     )
 
-
     style_figure(
         imbalance_fig,
         height=510,
     )
 
-
     imbalance_fig.update_traces(
-        marker_color="#F59E0B",
+        marker_color="#FF9F1C",
         marker_line_width=0,
         hovertemplate=(
             "<b>%{y}</b><br>"
@@ -667,18 +618,15 @@ with pressure_left:
         ),
     )
 
-
     imbalance_fig.update_layout(
         yaxis_title=None,
         showlegend=False,
     )
 
-
     st.plotly_chart(
         imbalance_fig,
         width="stretch",
     )
-
 
 # ---------------------------------------------------------
 # OD ROUTES
@@ -689,7 +637,6 @@ with pressure_right:
         route_limit
     )
 
-
     routes["route"] = (
         routes[
             "start_station_name"
@@ -699,7 +646,6 @@ with pressure_right:
             "end_station_name"
         ]
     )
-
 
     route_fig = px.bar(
         routes.sort_values(
@@ -716,15 +662,13 @@ with pressure_right:
         },
     )
 
-
     style_figure(
         route_fig,
         height=510,
     )
 
-
     route_fig.update_traces(
-        marker_color="#14B8A6",
+        marker_color="#13C8A3",
         marker_line_width=0,
         hovertemplate=(
             "<b>%{y}</b><br>"
@@ -733,18 +677,15 @@ with pressure_right:
         ),
     )
 
-
     route_fig.update_layout(
         yaxis_title=None,
         showlegend=False,
     )
 
-
     st.plotly_chart(
         route_fig,
         width="stretch",
     )
-
 
 # ---------------------------------------------------------
 # INTERPRETATION
@@ -760,7 +701,6 @@ note_card(
         "station inventory change."
     ),
 )
-
 
 # ---------------------------------------------------------
 # FOOTER

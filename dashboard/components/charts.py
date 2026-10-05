@@ -1,11 +1,12 @@
 import plotly.graph_objects as go
 
 COLORWAY = [
-    "#0F6CBD",
-    "#14B8A6",
-    "#F59E0B",
-    "#8B5CF6",
-    "#EF4444",
+    "#0B6BFF",
+    "#13C8A3",
+    "#FF9F1C",
+    "#9A5CFF",
+    "#FF5D6C",
+    "#38BDF8",
 ]
 
 
@@ -20,33 +21,40 @@ def style_figure(
         plot_bgcolor="rgba(0,0,0,0)",
         colorway=COLORWAY,
         font={
-            "family": "Arial, sans-serif",
-            "color": "#334155",
-            "size": 13,
+            "family": "Inter, Segoe UI, Arial, sans-serif",
+            "color": "#425A78",
+            "size": 15,
         },
         title={
             "font": {
-                "size": 18,
-                "color": "#0B1F33",
+                "size": 20,
+                "color": "#0B1F3A",
+                "family": "Inter, Segoe UI, Arial, sans-serif",
             },
-            "x": 0.01,
+            "x": 0.025,
+            "y": 0.96,
         },
         margin={
-            "l": 30,
-            "r": 25,
-            "t": 65,
-            "b": 35,
+            "l": 34,
+            "r": 28,
+            "t": 68,
+            "b": 38,
         },
         hoverlabel={
-            "font_size": 13,
-            "bgcolor": "#0B1F33",
+            "font_size": 14,
+            "bgcolor": "#0B1F3A",
             "font_color": "#FFFFFF",
+            "bordercolor": "#0B6BFF",
         },
         legend={
             "title": None,
             "orientation": "h",
             "y": 1.08,
             "x": 0,
+            "font": {
+                "color": "#5F7390",
+                "size": 13,
+            },
         },
         hovermode="closest",
     )
@@ -59,25 +67,53 @@ def style_figure(
     fig.update_xaxes(
         showgrid=False,
         zeroline=False,
-        linecolor="#E2E8F0",
+        linecolor="#DFEAF5",
         tickfont={
-            "color": "#64748B",
+            "color": "#70839E",
+            "size": 14,
         },
         title_font={
-            "color": "#64748B",
+            "color": "#607590",
+            "size": 15,
         },
+        ticks="outside",
+        tickcolor="#D7E5F2",
     )
 
     fig.update_yaxes(
-        gridcolor="rgba(148,163,184,0.20)",
+        gridcolor="rgba(144, 168, 196, 0.18)",
         zeroline=False,
-        linecolor="#E2E8F0",
+        linecolor="#DFEAF5",
         tickfont={
-            "color": "#64748B",
+            "color": "#70839E",
+            "size": 14,
         },
         title_font={
-            "color": "#64748B",
+            "color": "#607590",
+            "size": 15,
         },
+        ticks="outside",
+        tickcolor="#D7E5F2",
+    )
+
+    fig.update_coloraxes(
+        colorbar_tickfont={
+            "color": "#607590",
+            "size": 13,
+        },
+        colorbar_title_font={
+            "color": "#425A78",
+            "size": 14,
+        },
+    )
+
+    fig.for_each_annotation(
+        lambda annotation: annotation.update(
+            font={
+                "size": 14,
+                "color": "#425A78",
+            }
+        )
     )
 
     return fig

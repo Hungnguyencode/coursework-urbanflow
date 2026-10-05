@@ -7,10 +7,19 @@ def render_trip_filters(
     min_date: date,
     max_date: date,
 ) -> dict:
-    st.sidebar.header("Filters")
+    with st.sidebar:
+        st.html(
+            '<div class="uf-filter-heading">'
+            '<div class="uf-filter-heading-icon">⚙</div>'
+            '<div class="uf-filter-heading-copy">'
+            '<div class="uf-filter-title">Filters</div>'
+            '<div class="uf-filter-sub">Refine the active selection</div>'
+            '</div>'
+            '</div>'
+        )
 
     rider_label = st.sidebar.selectbox(
-        "Rider Type",
+        "👥  Rider Type",
         options=[
             "All riders",
             "Member",
@@ -19,7 +28,7 @@ def render_trip_filters(
     )
 
     bike_label = st.sidebar.selectbox(
-        "Bike Type",
+        "🚲  Bike Type",
         options=[
             "All bikes",
             "Electric bike",
@@ -28,10 +37,11 @@ def render_trip_filters(
     )
 
     selected_dates = st.sidebar.date_input(
-        "Date Range",
+        "📅  Date Range",
         value=(min_date, max_date),
         min_value=min_date,
         max_value=max_date,
+        format="MM/DD/YYYY",
     )
 
     if isinstance(selected_dates, (tuple, list)):
@@ -46,6 +56,22 @@ def render_trip_filters(
     else:
         start_date = selected_dates
         end_date = selected_dates
+
+    start_label = start_date.strftime("%b %d")
+    end_label = end_date.strftime("%b %d, %Y")
+
+    with st.sidebar:
+        st.html(
+            '<div class="uf-filter-summary">'
+            '<span class="uf-filter-summary-icon">✓</span>'
+            '<div>'
+            '<div class="uf-filter-summary-label">Active window</div>'
+            '<div class="uf-filter-summary-value">'
+            f'{start_label} → {end_label}'
+            '</div>'
+            '</div>'
+            '</div>'
+        )
 
     rider_values = {
         "All riders": None,
