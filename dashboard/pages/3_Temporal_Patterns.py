@@ -378,7 +378,7 @@ heatmap_fig = go.Figure(
 
 style_figure(
     heatmap_fig,
-    height=520,
+    height=430,
 )
 
 heatmap_fig.update_layout(
@@ -449,7 +449,7 @@ with profile_left:
 
     style_figure(
         hourly_fig,
-        height=455,
+        height=382,
     )
 
     hourly_fig.update_traces(
@@ -550,7 +550,7 @@ with profile_right:
 
     style_figure(
         weekday_fig,
-        height=455,
+        height=382,
     )
 
     weekday_fig.update_traces(

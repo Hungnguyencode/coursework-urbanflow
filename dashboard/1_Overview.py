@@ -457,7 +457,7 @@ with main_left:
 
     style_figure(
         daily_fig,
-        height=440,
+        height=372,
     )
 
     daily_fig.update_traces(
@@ -548,7 +548,7 @@ with main_right:
 
     member_fig.update_layout(
         template="plotly_white",
-        height=440,
+        height=372,
         margin={
             "l": 18,
             "r": 18,
@@ -619,7 +619,7 @@ with network_left:
 
     style_figure(
         station_fig,
-        height=485,
+        height=405,
     )
 
     station_fig.update_traces(
@@ -662,8 +662,6 @@ with network_right:
         ),
     )
 
-    st.write("")
-
     insight_card(
         title="Weekend behavior shifts",
         icon="🌤️",
@@ -674,8 +672,6 @@ with network_right:
             "commuter profile."
         ),
     )
-
-    st.write("")
 
     insight_card(
         title="Rain suppresses demand",

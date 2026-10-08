@@ -417,6 +417,7 @@ else:
     st.pydeck_chart(
         deck,
         width="stretch",
+        height=470,
     )
 
 # ---------------------------------------------------------
@@ -468,7 +469,7 @@ with left:
 
     style_figure(
         loss_fig,
-        height=430,
+        height=372,
     )
 
     loss_fig.update_traces(
@@ -522,7 +523,7 @@ with right:
 
     style_figure(
         gain_fig,
-        height=430,
+        height=372,
     )
 
     gain_fig.update_traces(
@@ -605,7 +606,7 @@ with pressure_left:
 
     style_figure(
         imbalance_fig,
-        height=510,
+        height=440,
     )
 
     imbalance_fig.update_traces(
@@ -664,7 +665,7 @@ with pressure_right:
 
     style_figure(
         route_fig,
-        height=510,
+        height=440,
     )
 
     route_fig.update_traces(

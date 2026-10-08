@@ -65,7 +65,6 @@ def load_data_health() -> dict:
     finally:
         conn.close()
 
-
 def render_sidebar_health(
     *,
     expected_hours: int,

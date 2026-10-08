@@ -14,7 +14,6 @@ HERO_ASSET_BY_TITLE = {
     "Weather Impact": "nyc_weather.webp",
 }
 
-
 GLOBAL_CSS = """
 <style>
 :root {
@@ -58,8 +57,8 @@ header[data-testid="stHeader"] {
 .main .block-container,
 [data-testid="stMainBlockContainer"] {
     max-width: 1510px;
-    padding-top: 1.35rem;
-    padding-bottom: 4rem;
+    padding-top: .85rem;
+    padding-bottom: 2.4rem;
 }
 
 [data-testid="stSidebar"] {
@@ -74,11 +73,12 @@ header[data-testid="stHeader"] {
 }
 
 [data-testid="stSidebarNav"] {
-    padding-top: 94px !important;
-    background-image: url("data:image/svg+xml;base64,{BRAND_SVG_B64}");
-    background-repeat: no-repeat;
-    background-position: 24px 16px;
-    background-size: 244px 70px;
+  padding-top: 78px !important;
+  background-image: url("data:image/svg+xml;base64,{BRAND_SVG_B64}");
+  background-repeat: no-repeat;
+  background-position: 24px 2px;
+  background-size: 244px 70px;
+  margin-top: -18px;
 }
 
 [data-testid="stSidebarNav"] ul {
@@ -136,14 +136,14 @@ header[data-testid="stHeader"] {
 .uf-hero {
     --uf-page-accent: var(--uf-blue);
     position: relative;
-    min-height: 266px;
+    min-height: 224px;
     overflow: hidden;
     border: 1px solid rgba(161, 210, 255, .52);
-    border-radius: 28px;
+    border-radius: 24px;
     background:
         radial-gradient(circle at 50% 28%, rgba(255,255,255,.96), rgba(239,249,255,.72) 42%, rgba(224,247,247,.72) 100%);
     box-shadow: 0 22px 65px rgba(50, 100, 150, .13);
-    margin-bottom: 1.2rem;
+    margin-bottom: .85rem;
 }
 
 .uf-hero::before {
@@ -172,7 +172,7 @@ header[data-testid="stHeader"] {
 
 .uf-hero-art {
     position: absolute;
-    inset: 0 0 0 51%;
+    inset: 0 0 0 52%;
     background-size: cover;
     background-position: center;
     opacity: .98;
@@ -190,15 +190,15 @@ header[data-testid="stHeader"] {
 .uf-hero-content {
     position: relative;
     z-index: 3;
-    width: 61%;
-    padding: 30px 38px 28px 40px;
+    width: 62%;
+    padding: 23px 34px 21px 34px;
 }
 
 .uf-eyebrow {
     display: inline-flex;
     align-items: center;
     gap: 9px;
-    margin-bottom: 9px;
+    margin-bottom: 6px;
     text-transform: uppercase;
     letter-spacing: .20em;
     font-size: .72rem;
@@ -219,11 +219,11 @@ header[data-testid="stHeader"] {
     align-items: center;
     gap: 13px;
     color: var(--uf-navy);
-    font-size: clamp(2.8rem, 4vw, 4.45rem);
+    font-size: clamp(2.65rem, 3.7vw, 4.05rem);
     line-height: .98;
     font-weight: 850;
     letter-spacing: -.055em;
-    margin: 5px 0 16px;
+    margin: 3px 0 11px;
 }
 
 .uf-title .uf-title-accent {
@@ -235,12 +235,12 @@ header[data-testid="stHeader"] {
 
 .uf-title-icon {
     display: inline-flex;
-    width: 58px;
-    height: 58px;
+    width: 52px;
+    height: 52px;
     align-items: center;
     justify-content: center;
-    border-radius: 18px;
-    font-size: 2.1rem;
+    border-radius: 16px;
+    font-size: 1.85rem;
     background: rgba(255,255,255,.72);
     border: 1px solid rgba(150, 202, 255, .62);
     box-shadow: 0 10px 24px rgba(47, 128, 237, .13);
@@ -249,8 +249,8 @@ header[data-testid="stHeader"] {
 .uf-subtitle {
     max-width: 850px;
     color: #425A78;
-    font-size: 1.04rem;
-    line-height: 1.65;
+    font-size: .96rem;
+    line-height: 1.50;
     font-weight: 480;
 }
 
@@ -258,32 +258,31 @@ header[data-testid="stHeader"] {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    margin-top: 18px;
+    margin-top: 14px;
 }
 
 .uf-pill {
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    padding: 8px 13px;
+    padding: 7px 12px;
     border-radius: 999px;
     background: rgba(255,255,255,.86);
     border: 1px solid rgba(191, 216, 242, .88);
     color: #213A59;
-    font-size: .80rem;
+    font-size: .77rem;
     font-weight: 700;
     box-shadow: 0 6px 17px rgba(66, 90, 120, .06);
 }
-
 
 .uf-viewbar {
     display: inline-flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 7px;
-    min-height: 36px;
-    margin: .15rem 0 .3rem;
-    padding: 7px 12px;
+    min-height: 32px;
+    margin: .05rem 0 .15rem;
+    padding: 6px 11px;
     border-radius: 12px;
     color: #6C809C;
     background: rgba(255,255,255,.62);
@@ -305,8 +304,8 @@ header[data-testid="stHeader"] {
 
 .uf-section {
     position: relative;
-    padding: 9px 0 8px 20px;
-    margin: 2.35rem 0 1.05rem;
+    padding: 7px 0 6px 18px;
+    margin: 1.55rem 0 .72rem;
 }
 
 .uf-section::before {
@@ -333,24 +332,23 @@ header[data-testid="stHeader"] {
 .uf-section-title {
     color: var(--uf-navy);
     font-weight: 820;
-    font-size: 1.55rem;
+    font-size: 1.42rem;
     letter-spacing: -.025em;
 }
 
 .uf-section-caption {
     color: #657995;
-    font-size: .90rem;
-    margin-top: 4px;
-    line-height: 1.5;
+    font-size: .84rem;
+    margin-top: 3px;
+    line-height: 1.42;
 }
-
 
 .uf-filter-heading {
     display: flex;
     align-items: center;
     gap: 11px;
-    margin: 1.55rem .05rem .85rem;
-    padding: 12px 13px;
+    margin: 1.10rem .05rem .62rem;
+    padding: 10px 12px;
     border-radius: 16px;
     border: 1px solid rgba(213, 230, 246, .90);
     background:
@@ -362,8 +360,8 @@ header[data-testid="stHeader"] {
 .uf-filter-heading-icon {
     display: flex;
     flex: 0 0 auto;
-    width: 35px;
-    height: 35px;
+    width: 32px;
+    height: 32px;
     align-items: center;
     justify-content: center;
     border-radius: 12px;
@@ -435,7 +433,7 @@ header[data-testid="stHeader"] {
 }
 
 .uf-sidebar-heading {
-    margin: 1.65rem .2rem .55rem;
+    margin: 1.25rem .2rem .45rem;
     color: #5D7190;
     font-size: .67rem;
     text-transform: uppercase;
@@ -451,7 +449,7 @@ header[data-testid="stHeader"] {
     border: 1px solid #D8E7F6;
     background: rgba(255,255,255,.92);
     box-shadow: 0 10px 26px rgba(67, 99, 136, .07);
-    padding: 16px 17px;
+    padding: 13px 15px;
 }
 
 .uf-status::before {
@@ -482,14 +480,14 @@ header[data-testid="stHeader"] {
     color: var(--uf-navy);
     font-weight: 800;
     font-size: 1.02rem;
-    margin-top: 8px;
+    margin-top: 6px;
 }
 
 .uf-status-refresh {
     position: relative;
     color: #7487A3;
     font-size: .75rem;
-    margin-top: 8px;
+    margin-top: 6px;
 }
 
 .uf-health-head {
@@ -499,7 +497,7 @@ header[data-testid="stHeader"] {
     color: var(--uf-navy);
     font-size: .91rem;
     font-weight: 820;
-    margin-bottom: 11px;
+    margin-bottom: 8px;
 }
 
 .uf-health-row {
@@ -509,7 +507,7 @@ header[data-testid="stHeader"] {
     gap: 9px;
     color: #70819B;
     font-size: .75rem;
-    padding: 8px 0;
+    padding: 6px 0;
     border-top: 1px solid #EEF4FA;
 }
 
@@ -523,12 +521,12 @@ header[data-testid="stHeader"] {
     position: relative;
     display: flex;
     gap: 13px;
-    min-height: 112px;
-    border-radius: 20px;
+    min-height: 94px;
+    border-radius: 18px;
     border: 1px solid #DDEAF7;
     background: linear-gradient(135deg, rgba(255,255,255,.98), rgba(248,252,255,.93));
     box-shadow: var(--uf-shadow-soft);
-    padding: 17px 17px 17px 19px;
+    padding: 13px 14px 13px 17px;
     overflow: hidden;
 }
 
@@ -556,8 +554,8 @@ header[data-testid="stHeader"] {
 .uf-insight-icon {
     flex: 0 0 auto;
     display: flex;
-    width: 39px;
-    height: 39px;
+    width: 36px;
+    height: 36px;
     align-items: center;
     justify-content: center;
     border-radius: 13px;
@@ -575,12 +573,12 @@ header[data-testid="stHeader"] {
     color: var(--uf-navy);
     font-size: .91rem;
     font-weight: 820;
-    margin: 2px 0 7px;
+    margin: 1px 0 5px;
 }
 
 .uf-insight-body {
     color: #61738D;
-    font-size: .80rem;
+    font-size: .77rem;
     line-height: 1.55;
 }
 
@@ -590,20 +588,20 @@ header[data-testid="stHeader"] {
     background:
         linear-gradient(135deg, rgba(255,255,255,.95), rgba(236,248,255,.72));
     box-shadow: 0 10px 25px rgba(67, 99, 136, .06);
-    padding: 17px 19px;
+    padding: 13px 16px;
 }
 
 .uf-note-title {
     color: #13385F;
     font-size: .88rem;
     font-weight: 820;
-    margin-bottom: 7px;
+    margin-bottom: 5px;
 }
 
 .uf-note-body {
     color: #5D718E;
     line-height: 1.55;
-    font-size: .80rem;
+    font-size: .77rem;
 }
 
 .uf-footer {
@@ -612,8 +610,8 @@ header[data-testid="stHeader"] {
     gap: 18px;
     color: #8A9AB1;
     border-top: 1px solid #DDE8F4;
-    margin-top: 3.2rem;
-    padding: 18px 1px 5px;
+    margin-top: 2.15rem;
+    padding: 14px 1px 3px;
     font-size: .70rem;
 }
 
@@ -626,14 +624,14 @@ header[data-testid="stHeader"] {
     --uf-kpi-tint: #EEF7FF;
     position: relative;
     overflow: hidden;
-    min-height: 146px;
+    min-height: 126px;
     border: 1px solid #DDEAF6;
-    border-radius: 21px;
+    border-radius: 19px;
     background:
         radial-gradient(circle at 95% 4%, rgba(11, 107, 255, .08) 0 52px, transparent 53px),
         linear-gradient(135deg, rgba(255,255,255,.98), var(--uf-kpi-tint));
     box-shadow: 0 15px 36px rgba(59, 92, 128, .08);
-    padding: 18px 19px 16px;
+    padding: 15px 16px 13px;
     transition: transform .16s ease, box-shadow .16s ease;
 }
 
@@ -646,49 +644,49 @@ header[data-testid="stHeader"] {
     display: flex;
     align-items: center;
     gap: 11px;
-    min-height: 38px;
+    min-height: 34px;
 }
 
 .uf-kpi-icon {
     display: flex;
-    width: 38px;
-    height: 38px;
+    width: 34px;
+    height: 34px;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
     color: #FFFFFF;
     background: var(--uf-kpi-accent);
     box-shadow: 0 8px 20px rgba(11, 107, 255, .16);
-    font-size: 1.03rem;
+    font-size: .96rem;
 }
 
 .uf-kpi-label {
     color: #233D61;
     font-weight: 720;
-    font-size: .83rem;
+    font-size: .79rem;
 }
 
 .uf-kpi-value {
     color: #0B2443;
-    font-size: 2.02rem;
-    line-height: 1.08;
+    font-size: 1.82rem;
+    line-height: 1.06;
     font-weight: 850;
     letter-spacing: -.035em;
-    margin-top: 9px;
+    margin-top: 7px;
 }
 
 .uf-kpi-sub {
     color: #7B8EA8;
-    font-size: .69rem;
-    margin-top: 7px;
+    font-size: .66rem;
+    margin-top: 5px;
 }
 
 div[data-testid="stPlotlyChart"] {
     border: 1px solid #DCE9F6;
-    border-radius: 22px;
+    border-radius: 20px;
     background: rgba(255,255,255,.96);
     box-shadow: 0 14px 36px rgba(68, 98, 131, .07);
-    padding: 4px 6px 2px;
+    padding: 2px 4px 1px;
     overflow: hidden;
 }
 
@@ -699,7 +697,7 @@ div[data-testid="stPlotlyChart"]:hover {
 [data-testid="stDeckGlJsonChart"],
 [data-testid="stPydeckChart"] {
     border: 1px solid #DCE9F6;
-    border-radius: 22px;
+    border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 14px 36px rgba(68, 98, 131, .08);
 }
@@ -844,7 +842,20 @@ div[data-testid="stPlotlyChart"]:hover {
 }
 
 [data-testid="stHorizontalBlock"] {
-    gap: 1rem;
+    gap: .85rem;
+}
+
+
+.uf-compact-gap {
+    height: 4px;
+}
+
+@media (min-width: 1181px) {
+    div[data-testid="stPlotlyChart"] .modebar {
+        opacity: .62;
+        transform: scale(.92);
+        transform-origin: top right;
+    }
 }
 
 @media (max-width: 1180px) {
@@ -892,10 +903,8 @@ div[data-testid="stPlotlyChart"]:hover {
 </style>
 """.replace("{BRAND_SVG_B64}", BRAND_SVG_B64)
 
-
 def inject_global_css() -> None:
     st.html(GLOBAL_CSS)
-
 
 @lru_cache(maxsize=8)
 def _asset_data_uri(filename: str) -> str | None:
@@ -920,7 +929,6 @@ def _asset_data_uri(filename: str) -> str | None:
 
     return f"data:{mime};base64,{encoded}"
 
-
 def _split_title(title: str) -> tuple[str, str]:
     if title == "UrbanFlow":
         return "Urban", "Flow"
@@ -930,7 +938,6 @@ def _split_title(title: str) -> tuple[str, str]:
         return f"{leading} ", accent
 
     return "", title
-
 
 def page_header(
     *,
@@ -1007,7 +1014,6 @@ def page_header(
     st.html(content)
 
 
-
 def view_context(text: str) -> None:
     safe_text = html.escape(text)
     parts = [
@@ -1030,7 +1036,6 @@ def view_context(text: str) -> None:
 
     content += '</div>'
     st.html(content)
-
 
 def section_header(
     title: str,
@@ -1067,7 +1072,6 @@ def section_header(
     content += '</div>'
     st.html(content)
 
-
 def sidebar_filter_heading(
     title: str,
     subtitle: str,
@@ -1095,7 +1099,6 @@ def sidebar_filter_heading(
             '</div>'
         )
 
-
 def sidebar_filter_summary(text: str) -> None:
     safe_text = html.escape(text)
 
@@ -1108,7 +1111,6 @@ def sidebar_filter_summary(text: str) -> None:
             '</div>'
             '</div>'
         )
-
 
 def sidebar_data_status(
     *,
@@ -1139,7 +1141,6 @@ def sidebar_data_status(
 
     with st.sidebar:
         st.html(content)
-
 
 def insight_card(
     *,
@@ -1172,7 +1173,6 @@ def insight_card(
 
     st.html(content)
 
-
 def note_card(
     *,
     title: str,
@@ -1193,7 +1193,6 @@ def note_card(
     )
 
     st.html(content)
-
 
 def sidebar_health_status(
     *,
@@ -1261,7 +1260,6 @@ def sidebar_health_status(
 
     with st.sidebar:
         st.html(content)
-
 
 def page_footer(
     *,

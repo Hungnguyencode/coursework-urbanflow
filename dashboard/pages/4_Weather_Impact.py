@@ -369,7 +369,7 @@ with signal_left:
 
     style_figure(
         temp_fig,
-        height=540,
+        height=448,
     )
 
     temp_fig.add_hline(
@@ -421,8 +421,6 @@ with signal_right:
         ),
     )
 
-    st.write("")
-
     insight_card(
         title="Rain association",
         icon="☔",
@@ -433,8 +431,6 @@ with signal_right:
             f"(r = {rain_corr:+.2f})."
         ),
     )
-
-    st.write("")
 
     insight_card(
         title="Temperature association",
@@ -520,7 +516,7 @@ with left:
 
     style_figure(
         precip_fig,
-        height=445,
+        height=365,
     )
 
     precip_fig.add_hline(
@@ -607,7 +603,7 @@ with right:
 
     style_figure(
         temp_band_fig,
-        height=445,
+        height=365,
     )
 
     temp_band_fig.add_hline(
@@ -706,7 +702,7 @@ else:
 
     style_figure(
         rain_fig,
-        height=490,
+        height=410,
     )
 
     rain_fig.add_hline(

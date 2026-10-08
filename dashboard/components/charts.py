@@ -9,7 +9,6 @@ COLORWAY = [
     "#38BDF8",
 ]
 
-
 def style_figure(
     fig: go.Figure,
     *,
@@ -37,8 +36,8 @@ def style_figure(
         margin={
             "l": 34,
             "r": 28,
-            "t": 68,
-            "b": 38,
+            "t": 58,
+            "b": 30,
         },
         hoverlabel={
             "font_size": 14,
@@ -74,7 +73,7 @@ def style_figure(
         },
         title_font={
             "color": "#607590",
-            "size": 15,
+            "size": 14,
         },
         ticks="outside",
         tickcolor="#D7E5F2",
@@ -90,7 +89,7 @@ def style_figure(
         },
         title_font={
             "color": "#607590",
-            "size": 15,
+            "size": 14,
         },
         ticks="outside",
         tickcolor="#D7E5F2",
@@ -117,3 +116,4 @@ def style_figure(
     )
 
     return fig
+

@@ -15,7 +15,6 @@ METADATA_PATH = (
     / "refresh_metadata.json"
 )
 
-
 @dataclass(
     frozen=True,
 )
@@ -54,7 +53,6 @@ class RefreshContext:
         return self.last_refresh.strftime(
             "%b %d, %Y %H:%M"
         )
-
 
 def load_refresh_context() -> RefreshContext:
     if not METADATA_PATH.exists():
@@ -113,7 +111,6 @@ def load_refresh_context() -> RefreshContext:
         last_refresh=last_refresh,
         data_version=data_version,
     )
-
 
 def sync_refresh_cache(
     context: RefreshContext,

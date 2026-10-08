@@ -108,7 +108,6 @@ FALLBACK_STYLES = [
     ("✦", "#9A5CFF", "#F5EEFF"),
 ]
 
-
 def metric_row(
     metrics: list[tuple[str, str] | tuple[str, str, str]],
 ) -> None:
