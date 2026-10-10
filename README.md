@@ -371,7 +371,7 @@ urbanflow/
 ### Clone the repository
 
 ```powershell
-git clone https://github.com/Hungnguyencode/urbanflow.git
+git clone https://github.com/Hungnguyencode/coursework-urbanflow.git
 cd urbanflow
 ```
 
