@@ -1,3 +1,18 @@
+# ---------------------------------------------------------
+# CLOUD SNAPSHOT BOOTSTRAP (branch cloud-aug2026 only)
+# Must run before loading the refresh context or DuckDB.
+# ---------------------------------------------------------
+import sys
+from pathlib import Path
+
+if sys.platform == "linux":
+    _project_root = Path(__file__).resolve().parents[1]
+    for _module_path in (_project_root, _project_root / "src"):
+        if str(_module_path) not in sys.path:
+            sys.path.insert(0, str(_module_path))
+    from scripts.bootstrap_cloud_snapshot import ensure_snapshot
+    ensure_snapshot()
+
 import duckdb
 import plotly.express as px
 import streamlit as st
