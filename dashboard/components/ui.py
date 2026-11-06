@@ -12,6 +12,7 @@ HERO_ASSET_BY_TITLE = {
     "Mobility Flow": "nyc_mobility.webp",
     "Temporal Patterns": "nyc_temporal.webp",
     "Weather Impact": "nyc_weather.webp",
+    "Insight Studio": "nyc_insight.png",
 }
 
 GLOBAL_CSS = """
@@ -127,6 +128,7 @@ header[data-testid="stHeader"] {
 [data-testid="stSidebarNav"] li:nth-child(2) a::before { content: "▥"; }
 [data-testid="stSidebarNav"] li:nth-child(3) a::before { content: "◷"; }
 [data-testid="stSidebarNav"] li:nth-child(4) a::before { content: "☁"; }
+[data-testid="stSidebarNav"] li:nth-child(5) a::before { content: "✦"; }
 
 [data-testid="stSidebar"] hr {
     border-color: #D8E6F5;
@@ -900,6 +902,51 @@ div[data-testid="stPlotlyChart"]:hover {
         flex-direction: column;
     }
 }
+
+/* Insight Studio — align with existing navigation */
+[data-testid="stSidebarNav"] li:nth-child(5) a::before {
+    content: "✦";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    min-width: 30px;
+    margin-right: 8px;
+    font-size: 1.12rem;
+    font-weight: 700;
+    color: #0B6BFF !important;
+    flex-shrink: 0;
+}
+
+/* ===== URBANFLOW - ALIGN ALL 5 SIDEBAR ICONS ===== */
+
+[data-testid="stSidebarNav"] li:nth-child(-n+5) a {
+    display: flex !important;
+    align-items: center !important;
+}
+
+[data-testid="stSidebarNav"] li:nth-child(-n+5) a::before {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    width: 30px !important;
+    min-width: 30px !important;
+    height: 24px !important;
+
+    margin: 0 8px 0 0 !important;
+    flex-shrink: 0 !important;
+
+    color: #0B6BFF !important;
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+}
+
+/* Insight Studio: same alignment and blue icon */
+[data-testid="stSidebarNav"] li:nth-child(5) a::before {
+    content: "✦" !important;
+}
 </style>
 """.replace("{BRAND_SVG_B64}", BRAND_SVG_B64)
 
@@ -1126,7 +1173,7 @@ def sidebar_data_status(
         '</div>'
         '<div class="uf-status">'
         '<div class="uf-status-label">'
-        'Active dataset'
+        'Research snapshot'
         '</div>'
         '<div class="uf-status-value">'
         '🟢 '
