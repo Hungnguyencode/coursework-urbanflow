@@ -1,11 +1,9 @@
+
 param(
     [string]$Period = ""
 )
 
 $ErrorActionPreference = "Stop"
-
-[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
-$OutputEncoding = [Console]::OutputEncoding
 
 $env:PYTHONUTF8 = "1"
 $env:PYTHONIOENCODING = "utf-8"
@@ -13,70 +11,51 @@ $env:PYTHONIOENCODING = "utf-8"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $ProjectRoot
 
-$LogDirectory = Join-Path $ProjectRoot "logs"
+$Python = Join-Path $ProjectRoot ".venv\Scripts\python.exe"
+$Script = Join-Path $ProjectRoot "scripts\refresh_monthly_history.py"
 
-New-Item `
-    -ItemType Directory `
-    -Force `
-    -Path $LogDirectory `
-    | Out-Null
+if (-not (Test-Path $Python)) {
+    throw "Python environment not found: $Python"
+}
+
+if (-not (Test-Path $Script)) {
+    throw "Refresh script not found: $Script"
+}
+
+$LogDir = Join-Path $ProjectRoot "logs"
+New-Item -ItemType Directory -Force -Path $LogDir |
+    Out-Null
 
 $Timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$LogFile = Join-Path $LogDir "refresh_$Timestamp.log"
 
-$LogFile = Join-Path `
-    $LogDirectory `
-    "refresh_$Timestamp.log"
-
-Write-Host ""
-Write-Host "============================================================"
-Write-Host "URBANFLOW SCHEDULED REFRESH"
-Write-Host "============================================================"
-Write-Host "Project : $ProjectRoot"
-Write-Host "Log     : $LogFile"
-
-$PipelineArguments = @(
-    "run",
-    "python",
-    "scripts\update_pipeline.py",
+$Arguments = @(
+    "-u",
+    $Script,
     "--cleanup-raw"
 )
 
 if ($Period -ne "") {
-    $PipelineArguments += @(
-        "--period",
-        $Period
-    )
-
-    Write-Host "Period  : $Period"
-}
-else {
-    Write-Host "Period  : automatic"
+    $Arguments += @("--period", $Period)
 }
 
-Write-Host ""
+Write-Host "URBANFLOW SCHEDULED HISTORY REFRESH"
+Write-Host "Project: $ProjectRoot"
+Write-Host "Log: $LogFile"
 
-$PreviousErrorActionPreference = $ErrorActionPreference
+$OldPreference = $ErrorActionPreference
 $ErrorActionPreference = "Continue"
 
-& uv @PipelineArguments 2>&1 |
+& $Python @Arguments 2>&1 |
     Tee-Object -FilePath $LogFile
 
 $ExitCode = $LASTEXITCODE
-
-$ErrorActionPreference = $PreviousErrorActionPreference
+$ErrorActionPreference = $OldPreference
 
 if ($ExitCode -ne 0) {
-    Write-Host ""
-    Write-Host "URBANFLOW REFRESH FAILED"
-    Write-Host "See log: $LogFile"
-
+    Write-Host "REFRESH FAILED. Check: $LogFile"
     exit $ExitCode
 }
 
-Write-Host ""
-Write-Host "============================================================"
-Write-Host "URBANFLOW SCHEDULED REFRESH COMPLETE"
-Write-Host "============================================================"
-Write-Host "Log: $LogFile"
-
+Write-Host "REFRESH COMPLETED. Log: $LogFile"
 exit 0
